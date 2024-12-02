@@ -395,9 +395,9 @@
       proguardRules="proguard.txt"/>
   <library
       name=":@@:url_launcher_android::release"
-      jars="/home/kali/Pictures/drone/build/url_launcher_android/.transforms/620dd7691ed105eb049b4c60481349eb/transformed/out/jars/classes.jar:/home/kali/Pictures/drone/build/url_launcher_android/.transforms/620dd7691ed105eb049b4c60481349eb/transformed/out/jars/libs/R.jar"
+      jars="/home/kali/Documents/Project Work/drone_latest/build/url_launcher_android/.transforms/d064bf26240ac429cfc3871350e13ded/transformed/out/jars/classes.jar:/home/kali/Documents/Project Work/drone_latest/build/url_launcher_android/.transforms/d064bf26240ac429cfc3871350e13ded/transformed/out/jars/libs/R.jar"
       resolved="io.flutter.plugins.urllauncher:url_launcher_android:unspecified"
-      folder="/home/kali/Pictures/drone/build/url_launcher_android/.transforms/620dd7691ed105eb049b4c60481349eb/transformed/out"
+      folder="/home/kali/Documents/Project Work/drone_latest/build/url_launcher_android/.transforms/d064bf26240ac429cfc3871350e13ded/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

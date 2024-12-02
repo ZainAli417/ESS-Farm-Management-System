@@ -3,9 +3,9 @@
     package="io.flutter.plugins.firebase.core"
     minSdkVersion="21"
     targetSdkVersion="21"
-    mergedManifest="/home/kali/Pictures/drone/build/firebase_core/intermediates/merged_manifest/release/AndroidManifest.xml"
-    proguardFiles="/home/kali/Pictures/drone/build/firebase_core/intermediates/default_proguard_files/global/proguard-android.txt-8.2.1"
-    partialResultsDir="/home/kali/Pictures/drone/build/firebase_core/intermediates/lint_vital_partial_results/release/out"
+    mergedManifest="/home/kali/Documents/Project Work/drone_latest/build/firebase_core/intermediates/merged_manifest/release/AndroidManifest.xml"
+    proguardFiles="/home/kali/Documents/Project Work/drone_latest/build/firebase_core/intermediates/default_proguard_files/global/proguard-android.txt-8.2.1"
+    partialResultsDir="/home/kali/Documents/Project Work/drone_latest/build/firebase_core/intermediates/lint_vital_partial_results/release/out"
     desugaredMethodsFiles="/root/.gradle/caches/transforms-3/b9bcfaed630ad552cc8570c874a58d72/transformed/D8BackportedDesugaredMethods.txt">
   <buildFeatures
       namespacing="REQUIRED"/>
@@ -21,11 +21,11 @@
   <testFixturesSourceProviders>
   </testFixturesSourceProviders>
   <artifact
-      classOutputs="/home/kali/Pictures/drone/build/firebase_core/intermediates/javac/release/classes:/home/kali/Pictures/drone/build/firebase_core/intermediates/compile_r_class_jar/release/R.jar"
+      classOutputs="/home/kali/Documents/Project Work/drone_latest/build/firebase_core/intermediates/javac/release/classes:/home/kali/Documents/Project Work/drone_latest/build/firebase_core/intermediates/compile_r_class_jar/release/R.jar"
       type="MAIN"
       applicationId="io.flutter.plugins.firebase.core"
-      generatedSourceFolders="/home/kali/Pictures/drone/build/firebase_core/generated/ap_generated_sources/release/out:/home/kali/Pictures/drone/build/firebase_core/generated/source/buildConfig/release"
-      generatedResourceFolders="/home/kali/Pictures/drone/build/firebase_core/generated/res/resValues/release"
+      generatedSourceFolders="/home/kali/Documents/Project Work/drone_latest/build/firebase_core/generated/ap_generated_sources/release/out:/home/kali/Documents/Project Work/drone_latest/build/firebase_core/generated/source/buildConfig/release"
+      generatedResourceFolders="/home/kali/Documents/Project Work/drone_latest/build/firebase_core/generated/res/resValues/release"
       desugaredMethodsFiles="/root/.gradle/caches/transforms-3/b9bcfaed630ad552cc8570c874a58d72/transformed/D8BackportedDesugaredMethods.txt">
   </artifact>
 </variant>

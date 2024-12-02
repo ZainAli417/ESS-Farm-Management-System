@@ -437,9 +437,9 @@
       proguardRules="proguard.txt"/>
   <library
       name=":@@:google_maps_flutter_android::release"
-      jars="/home/kali/Pictures/drone/build/google_maps_flutter_android/.transforms/810a7dc2f66a0c868b8074cd3e5ac88f/transformed/out/jars/classes.jar:/home/kali/Pictures/drone/build/google_maps_flutter_android/.transforms/810a7dc2f66a0c868b8074cd3e5ac88f/transformed/out/jars/libs/R.jar"
+      jars="/home/kali/Documents/Project Work/drone_latest/build/google_maps_flutter_android/.transforms/698f913bed3f29c17dfd27bc8ad045fc/transformed/out/jars/classes.jar:/home/kali/Documents/Project Work/drone_latest/build/google_maps_flutter_android/.transforms/698f913bed3f29c17dfd27bc8ad045fc/transformed/out/jars/libs/R.jar"
       resolved="io.flutter.plugins.googlemaps:google_maps_flutter_android:unspecified"
-      folder="/home/kali/Pictures/drone/build/google_maps_flutter_android/.transforms/810a7dc2f66a0c868b8074cd3e5ac88f/transformed/out"
+      folder="/home/kali/Documents/Project Work/drone_latest/build/google_maps_flutter_android/.transforms/698f913bed3f29c17dfd27bc8ad045fc/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

@@ -1,8 +1,8 @@
-com.baseflow.geolocator.geolocator_android-pngs-0 /home/kali/Pictures/drone/build/geolocator_android/generated/res/pngs/release
-com.baseflow.geolocator.geolocator_android-resValues-1 /home/kali/Pictures/drone/build/geolocator_android/generated/res/resValues/release
-com.baseflow.geolocator.geolocator_android-mergeReleaseResources-2 /home/kali/Pictures/drone/build/geolocator_android/intermediates/incremental/release/mergeReleaseResources/merged.dir
-com.baseflow.geolocator.geolocator_android-mergeReleaseResources-3 /home/kali/Pictures/drone/build/geolocator_android/intermediates/incremental/release/mergeReleaseResources/stripped.dir
-com.baseflow.geolocator.geolocator_android-merged_res-4 /home/kali/Pictures/drone/build/geolocator_android/intermediates/merged_res/release
+com.baseflow.geolocator.geolocator_android-pngs-0 /home/kali/Documents/Project Work/drone_latest/build/geolocator_android/generated/res/pngs/release
+com.baseflow.geolocator.geolocator_android-resValues-1 /home/kali/Documents/Project Work/drone_latest/build/geolocator_android/generated/res/resValues/release
+com.baseflow.geolocator.geolocator_android-mergeReleaseResources-2 /home/kali/Documents/Project Work/drone_latest/build/geolocator_android/intermediates/incremental/release/mergeReleaseResources/merged.dir
+com.baseflow.geolocator.geolocator_android-mergeReleaseResources-3 /home/kali/Documents/Project Work/drone_latest/build/geolocator_android/intermediates/incremental/release/mergeReleaseResources/stripped.dir
+com.baseflow.geolocator.geolocator_android-merged_res-4 /home/kali/Documents/Project Work/drone_latest/build/geolocator_android/intermediates/merged_res/release
 com.baseflow.geolocator.geolocator_android-core-1.13.1-5 /root/.gradle/caches/transforms-3/0ae515433ff78557881b809a09a6cd59/transformed/core-1.13.1/res
 com.baseflow.geolocator.geolocator_android-jetified-lifecycle-process-2.7.0-6 /root/.gradle/caches/transforms-3/15e13608d80b67f0f3300446ad957208/transformed/jetified-lifecycle-process-2.7.0/res
 com.baseflow.geolocator.geolocator_android-lifecycle-viewmodel-2.7.0-7 /root/.gradle/caches/transforms-3/2326a2772ff41e347f27a4c4f8764ea2/transformed/lifecycle-viewmodel-2.7.0/res
