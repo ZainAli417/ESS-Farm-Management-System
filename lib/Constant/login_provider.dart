@@ -36,12 +36,10 @@ class LoginProvider with ChangeNotifier {
         password: passwordController.text,
       );
 
-
       if (userCredential.user != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) =>  DeviceSelection()),
-
+          MaterialPageRoute(builder: (context) => DeviceSelection()),
         );
         emailController.clear();
         passwordController.clear();
@@ -97,6 +95,4 @@ class LoginProvider with ChangeNotifier {
       ),
     );
   }
-
-
 }

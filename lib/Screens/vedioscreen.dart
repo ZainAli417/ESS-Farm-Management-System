@@ -26,12 +26,6 @@ class _VideoScreenState extends State<VideoScreen> {
   Timer? _debounce;
   final FocusNode _focusNode = FocusNode();
   int drone_direct = 0;
-  // UP = 3
-  // Down = 4
-  // Left = 1
-  // Right = 2
-  // Stop = 0
-
   @override
   void initState() {
     super.initState();
@@ -42,7 +36,6 @@ class _VideoScreenState extends State<VideoScreen> {
     }
     _carPosition = LatLng(0, 0); // Initialize with a default value
   }
-
   LatLng _currentPosition = LatLng(0, 0); // Default position
   late DatabaseReference _latRef;
   late DatabaseReference _longRef;
@@ -75,7 +68,6 @@ class _VideoScreenState extends State<VideoScreen> {
   late GoogleMapController _googleMapController;
   final DatabaseReference _databaseReference = FirebaseDatabase.instance.ref();
   Timer? _movementTimer;
-
   double _remainingDistanceKM_TotalPath = 0.0;
   List<LatLng> polygonPoints = [];
   double pathWidth = 10.0;
@@ -212,7 +204,7 @@ class _VideoScreenState extends State<VideoScreen> {
         double distanceCoveredInThisTickKM = (speed * updateInterval) / 1000.0;
         segmentDistanceCoveredKM += distanceCoveredInThisTickKM;
         double segmentProgress =
-        (segmentDistanceCoveredKM / segmentDistanceKM).clamp(0.0, 1.0);
+            (segmentDistanceCoveredKM / segmentDistanceKM).clamp(0.0, 1.0);
         _carPosition = _lerpLatLng(start, end, segmentProgress);
         bool isSelectedSegment = _isSegmentSelected(path, _currentPointIndex);
         distanceCoveredInWholeJourney += distanceCoveredInThisTickKM;
@@ -242,7 +234,7 @@ class _VideoScreenState extends State<VideoScreen> {
         });
         setState(() {
           _markers.removeWhere(
-                  (marker) => marker.markerId == const MarkerId('car'));
+              (marker) => marker.markerId == const MarkerId('car'));
           _addCarMarker(isSelectedSegment);
           if (segmentProgress >= 1.0) {
             _currentPointIndex++;
@@ -326,7 +318,7 @@ class _VideoScreenState extends State<VideoScreen> {
                             setState(() {
                               selectedSegments = List.generate(
                                 (_dronepath.length - 1) ~/ 2,
-                                    (i) => i,
+                                (i) => i,
                               );
                             });
                           },
@@ -346,7 +338,7 @@ class _VideoScreenState extends State<VideoScreen> {
                               );
                               selectedPaths.add(segment);
                               double segmentDistance =
-                              calculate_selcted_segemnt_distance(segment);
+                                  calculate_selcted_segemnt_distance(segment);
                               totalDistance += segmentDistance;
                             }
                             _totalDistanceKM =
@@ -377,10 +369,6 @@ class _VideoScreenState extends State<VideoScreen> {
       },
     );
   }
-
-
-
-
   void dronepath_Horizontal(List<LatLng> polygon, double pathWidth, LatLng startPoint) {
     if (polygon.isEmpty) return;
 
@@ -423,9 +411,10 @@ class _VideoScreenState extends State<VideoScreen> {
       }
     }
 
-
     // Generate path from the starting point upwards
-    for (double lat = startLat - latIncrement; lat >= minLat; lat -= latIncrement) {
+    for (double lat = startLat - latIncrement;
+        lat >= minLat;
+        lat -= latIncrement) {
       List<LatLng> intersections = [];
       for (int i = 0; i < polygon.length; i++) {
         LatLng p1 = polygon[i];
@@ -466,9 +455,6 @@ class _VideoScreenState extends State<VideoScreen> {
       totalZigzagPathKm = totalDistancezigzagKm; // Update the distance here
     });
   }
-
-
-
   void dronepath_Vertical(List<LatLng> polygon, double pathWidth, LatLng startPoint) {
     if (polygon.isEmpty) return;
 
@@ -512,7 +498,9 @@ class _VideoScreenState extends State<VideoScreen> {
     }
 
     // Generate path from the starting point to the left
-    for (double lng = startLng - lngIncrement; lng >= minLng; lng -= lngIncrement) {
+    for (double lng = startLng - lngIncrement;
+        lng >= minLng;
+        lng -= lngIncrement) {
       List<LatLng> intersections = [];
       for (int i = 0; i < polygon.length; i++) {
         LatLng p1 = polygon[i];
@@ -553,22 +541,12 @@ class _VideoScreenState extends State<VideoScreen> {
       totalZigzagPathKm = totalDistancezigzagKm; // Update the distance here
     });
   }
-
-
-
-
-
-
-
-
 // Extracting LatLng points from markers
   void extractLatLngPoints() {
     if (polygons.isNotEmpty) {
       polygonPoints = polygons.first.points.toList();
     }
   }
-
-
 // Dialog for selecting path direction and starting point
   void Selecting_Path_Direction_and_Turn() {
     double turnLength = 10.0; // Default turn length
@@ -578,7 +556,8 @@ class _VideoScreenState extends State<VideoScreen> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: const Text('Enter Turn Length (meters) default is 10 meters'),
+              title:
+                  const Text('Enter Turn Length (meters) default is 10 meters'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -638,9 +617,11 @@ class _VideoScreenState extends State<VideoScreen> {
                     Navigator.of(context).pop();
                     extractLatLngPoints();
                     if (_selectedDirection == PathDirection.vertical) {
-                      dronepath_Vertical(polygonPoints, pathWidth, selectedMarker!);
+                      dronepath_Vertical(
+                          polygonPoints, pathWidth, selectedMarker!);
                     } else {
-                      dronepath_Horizontal(polygonPoints, pathWidth, selectedMarker!);
+                      dronepath_Horizontal(
+                          polygonPoints, pathWidth, selectedMarker!);
                     }
                     _closePolygon(turnLength);
                   },
@@ -653,7 +634,6 @@ class _VideoScreenState extends State<VideoScreen> {
       },
     );
   }
-
   Future<void> _closePolygon(double turnLength) async {
     setState(() {
       _polylines.clear();
@@ -682,7 +662,6 @@ class _VideoScreenState extends State<VideoScreen> {
       }
     }
   }
-
   bool _isSegmentSelected(List<LatLng> path, int index) {
     if (index < path.length - 1) {
       List<LatLng> segment = path.sublist(index, index + 2);
@@ -752,10 +731,6 @@ class _VideoScreenState extends State<VideoScreen> {
     _debounce?.cancel();
     super.dispose();
   }
-  void _hideKeyboard() {
-    FocusScope.of(context).previousFocus();
-  }
-
 //UI BUILD
   @override
   Widget build(BuildContext context) {
@@ -780,9 +755,7 @@ class _VideoScreenState extends State<VideoScreen> {
             Container(
               padding: EdgeInsets.all(10),
               color: Colors.white,
-              child: Center(
-
-              ),
+              child: Center(),
             ),
             Center(
               child: Column(
@@ -959,51 +932,51 @@ class _VideoScreenState extends State<VideoScreen> {
                     _currentLocation == null
                         ? const Center(child: CircularProgressIndicator())
                         : GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: LatLng(
-                          _currentLocation!.latitude!,
-                          _currentLocation!.longitude!,
-                        ),
-                        zoom: 15.0,
-                        //zoom:10.0,
-                      ),
-                      markers: {
-                        ..._markers,
-                        Marker(
-                          markerId: const MarkerId('currentLocation'),
-                          position: _currentPosition,
-                          icon: BitmapDescriptor.defaultMarkerWithHue(
-                              BitmapDescriptor.hueViolet),
-                        ),
-                      },
-                      polylines: _polylines,
-                      polygons: polygons,
-                      zoomGesturesEnabled: true,
-                      rotateGesturesEnabled: true,
-                      buildingsEnabled: true,
-                      scrollGesturesEnabled: true,
-                      onTap: _onMapTap,
-                      onMapCreated: (controller) {
-                        _googleMapController = controller;
-                      },
-                      gestureRecognizers: <Factory<
-                          OneSequenceGestureRecognizer>>{
-                        Factory<OneSequenceGestureRecognizer>(
-                                () => EagerGestureRecognizer()),
-                      },
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: true,
-                    ),
+                            initialCameraPosition: CameraPosition(
+                              target: LatLng(
+                                _currentLocation!.latitude!,
+                                _currentLocation!.longitude!,
+                              ),
+                              zoom: 15.0,
+                              //zoom:10.0,
+                            ),
+                            markers: {
+                              ..._markers,
+                              Marker(
+                                markerId: const MarkerId('currentLocation'),
+                                position: _currentPosition,
+                                icon: BitmapDescriptor.defaultMarkerWithHue(
+                                    BitmapDescriptor.hueViolet),
+                              ),
+                            },
+                            polylines: _polylines,
+                            polygons: polygons,
+                            zoomGesturesEnabled: true,
+                            rotateGesturesEnabled: true,
+                            buildingsEnabled: true,
+                            scrollGesturesEnabled: true,
+                            onTap: _onMapTap,
+                            onMapCreated: (controller) {
+                              _googleMapController = controller;
+                            },
+                            gestureRecognizers: <Factory<
+                                OneSequenceGestureRecognizer>>{
+                              Factory<OneSequenceGestureRecognizer>(
+                                  () => EagerGestureRecognizer()),
+                            },
+                            myLocationEnabled: true,
+                            myLocationButtonEnabled: true,
+                          ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: ClipRRect(
                         borderRadius:
-                        BorderRadius.circular(30.0), // Capsule shape
+                            BorderRadius.circular(30.0), // Capsule shape
                         child: Container(
                           decoration: const BoxDecoration(
                             color: Colors.white,
                           ),
-                         /* child: TypeAheadField<geocoding.Placemark>(
+                          /* child: TypeAheadField<geocoding.Placemark>(
                             textFieldConfiguration: TextFieldConfiguration(
                               focusNode: _focusNode,
                               autofocus: false,
@@ -1252,8 +1225,6 @@ class _VideoScreenState extends State<VideoScreen> {
       ),
     );
   }
-
-
   void _updateRouteData() {
     try {
       for (int i = 0; i < _markers.length; i++) {
@@ -1317,8 +1288,6 @@ class _VideoScreenState extends State<VideoScreen> {
       }
     });
   }
-
-
   /*
   void _onMapTap(LatLng latLng) {
     final markerId = MarkerId('M${_markers.length + 1}');
@@ -1376,7 +1345,6 @@ class _VideoScreenState extends State<VideoScreen> {
   }
 
 */
-
 //area calculation of field
   double _calculateSphericalPolygonArea(List<LatLng> points) {
     const double radiusOfEarth = 6378137.0; // Earth's radius in meters

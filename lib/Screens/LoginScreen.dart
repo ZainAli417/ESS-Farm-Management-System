@@ -14,7 +14,8 @@ class LoginScreen extends StatefulWidget {
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   bool _passwordVisible = false;
 
@@ -46,10 +47,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     _animationController.dispose();
     super.dispose();
   }
+
   final gps.Location _location = gps.Location();
 
   Future<void> requestLocationPermission() async {
-
     // Check if location service is enabled
     bool _serviceEnabled;
     PermissionStatus _permissionGranted;
@@ -74,7 +75,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     // Location permission granted, proceed with your logic
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,9 +92,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 1.0, sigmaY: 1.0), // Slight blur effect
+                  filter: ImageFilter.blur(
+                      sigmaX: 1.0, sigmaY: 1.0), // Slight blur effect
                   child: Card(
-                    color: Colors.white.withOpacity(0.55), // Slight opacity for the blur effect
+                    color: Colors.white.withOpacity(
+                        0.55), // Slight opacity for the blur effect
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16.0),
                     ),
@@ -104,8 +106,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                       children: [
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 30,horizontal: 10),
-                          decoration:  const BoxDecoration(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 30, horizontal: 10),
+                          decoration: const BoxDecoration(
                             color: Color(0xFF037441), // Indigo header
                             borderRadius: BorderRadius.only(
                               topLeft: Radius.circular(16.0),
@@ -122,7 +125,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 ),
                                 children: const [
                                   TextSpan(text: "Let's Sign in, Welcome back"),
-
                                 ],
                               ),
                             ),
@@ -137,17 +139,21 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               children: <Widget>[
                                 SizedBox(height: 20),
                                 TextFormField(
-                                  controller: Provider.of<LoginProvider>(context).emailController,
+                                  controller:
+                                      Provider.of<LoginProvider>(context)
+                                          .emailController,
                                   style: TextStyle(color: Colors.black87),
                                   decoration: InputDecoration(
                                     labelText: 'Email',
-                                    labelStyle: GoogleFonts.poppins(color: Colors.black87),
+                                    labelStyle: GoogleFonts.poppins(
+                                        color: Colors.black87),
                                     hintText: 'johndoe@mail.com',
-                                    hintStyle: GoogleFonts.poppins(color: Colors.black87),
-                                    prefixIcon: Icon(Icons.email, color: Colors.black87),
+                                    hintStyle: GoogleFonts.poppins(
+                                        color: Colors.black87),
+                                    prefixIcon: Icon(Icons.email,
+                                        color: Colors.black87),
                                     filled: true,
                                     border: OutlineInputBorder(
-
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                   ),
@@ -160,18 +166,25 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 ),
                                 SizedBox(height: 20),
                                 TextFormField(
-                                  controller: Provider.of<LoginProvider>(context).passwordController,
+                                  controller:
+                                      Provider.of<LoginProvider>(context)
+                                          .passwordController,
                                   obscureText: !_passwordVisible,
                                   style: const TextStyle(color: Colors.black87),
                                   decoration: InputDecoration(
                                     labelText: 'Password',
-                                    labelStyle: GoogleFonts.poppins(color: Colors.black87),
+                                    labelStyle: GoogleFonts.poppins(
+                                        color: Colors.black87),
                                     hintText: '********',
-                                    hintStyle: GoogleFonts.poppins(color: Colors.black87),
-                                    prefixIcon: const Icon(Icons.lock, color: Colors.black87),
+                                    hintStyle: GoogleFonts.poppins(
+                                        color: Colors.black87),
+                                    prefixIcon: const Icon(Icons.lock,
+                                        color: Colors.black87),
                                     suffixIcon: IconButton(
                                       icon: Icon(
-                                        _passwordVisible ? Icons.visibility : Icons.visibility_off,
+                                        _passwordVisible
+                                            ? Icons.visibility
+                                            : Icons.visibility_off,
                                         color: Colors.black87,
                                       ),
                                       onPressed: () {
@@ -200,7 +213,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                       showModalBottomSheet(
                                         context: context,
                                         isScrollControlled: false,
-                                        builder: (context) => ForgotPasswordScreen(),
+                                        builder: (context) =>
+                                            ForgotPasswordScreen(),
                                       );
                                     },
                                     child: Text(
@@ -219,29 +233,34 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     builder: (context, loginProvider, child) {
                                       return ElevatedButton(
                                         onPressed: () {
-                                          if (_formKey.currentState!.validate()) {
+                                          if (_formKey.currentState!
+                                              .validate()) {
                                             loginProvider.login(context);
                                           }
                                         },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Color(0xFF037441),
-                                          padding: const EdgeInsets.symmetric(horizontal: 75, vertical: 10),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 75, vertical: 10),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                         ),
                                         child: loginProvider.isLoading
                                             ? const CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation(Colors.white),
-                                        )
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation(
+                                                        Colors.white),
+                                              )
                                             : Text(
-                                          'Sign in',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 18,
-                                            color: Colors.white,
-                                          ),
-                                        ),
+                                                'Sign in',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 18,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
                                       );
                                     },
                                   ),
@@ -252,10 +271,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                     children: [
                                       Text(
                                         "By logging in, you agree to our",
-                                        style: GoogleFonts.poppins(fontSize: 13, color: Colors.black87,fontWeight: FontWeight.w500),
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 13,
+                                            color: Colors.black87,
+                                            fontWeight: FontWeight.w500),
                                       ),
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           TextButton(
                                             onPressed: () async {
@@ -272,12 +295,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                                 fontSize: 13,
                                                 color: Colors.black87,
                                                 fontWeight: FontWeight.w500,
-                                                decoration: TextDecoration.underline,
-
+                                                decoration:
+                                                    TextDecoration.underline,
                                               ),
                                             ),
                                           ),
-                                          Text(' & ', style: GoogleFonts.poppins(fontSize: 13)),
+                                          Text(' & ',
+                                              style: GoogleFonts.poppins(
+                                                  fontSize: 13)),
                                           TextButton(
                                             onPressed: () async {
                                               const url = '';
@@ -292,9 +317,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                               style: GoogleFonts.poppins(
                                                 fontSize: 13,
                                                 color: Colors.black87,
-
                                                 fontWeight: FontWeight.w500,
-                                                decoration: TextDecoration.underline,
+                                                decoration:
+                                                    TextDecoration.underline,
                                               ),
                                             ),
                                           ),

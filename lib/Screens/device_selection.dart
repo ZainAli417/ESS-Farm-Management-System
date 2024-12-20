@@ -117,7 +117,6 @@ class _DeviceSelectionState extends State<DeviceSelection>
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                       child: Card(
-
                         color: Colors.white.withOpacity(0.55),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16.0),
@@ -215,14 +214,12 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                                   width: 1,
                                                   color: Colors.black87,
                                                 ),
-                                                borderRadius: const BorderRadius.only(
+                                                borderRadius:
+                                                    const BorderRadius.only(
                                                   topLeft: Radius.circular(15),
                                                   topRight: Radius.circular(15),
                                                 ),
                                               ),
-
-
-
                                               child: Table(
                                                 border: const TableBorder(
                                                   top: BorderSide.none,
@@ -270,7 +267,8 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                                       ),
                                                       Padding(
                                                         padding: const EdgeInsets
-                                                            .fromLTRB(5, 10, 5, 10), // Reduced padding
+                                                            .fromLTRB(5, 10, 5,
+                                                            10), // Reduced padding
                                                         child: Center(
                                                           child: Text(
                                                             "Name",
@@ -333,15 +331,19 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                                     TableRow(
                                                       decoration: i % 2 == 0
                                                           ? const BoxDecoration(
-                                                               color: Color(
-                                                                   0xFFC3FFD6),) // Light green for odd rows
+                                                              color: Color(
+                                                                  0xFFC3FFD6),
+                                                            ) // Light green for odd rows
                                                           : const BoxDecoration(
                                                               color:
                                                                   Colors.white),
                                                       children: [
                                                         Padding(
                                                           padding: const EdgeInsets
-                                                              .fromLTRB(5, 10, 5,
+                                                              .fromLTRB(
+                                                              5,
+                                                              10,
+                                                              5,
                                                               10), // Reduced padding
                                                           child: Center(
                                                             child: Text(
@@ -361,8 +363,11 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                                         ),
                                                         Padding(
                                                           padding: const EdgeInsets
-                                                              .fromLTRB(5, 10, 5,
-                                                              10),  // Reduced padding
+                                                              .fromLTRB(
+                                                              5,
+                                                              10,
+                                                              5,
+                                                              10), // Reduced padding
                                                           child: Center(
                                                             child: Text(
                                                               _devices[i][
@@ -381,7 +386,10 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                                         ),
                                                         Padding(
                                                           padding: const EdgeInsets
-                                                              .fromLTRB(5, 10, 5,
+                                                              .fromLTRB(
+                                                              5,
+                                                              10,
+                                                              5,
                                                               10), // Reduced padding
                                                           child: Center(
                                                             child: Text(
@@ -401,21 +409,22 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                                           ),
                                                         ),
                                                         Padding(
-                                                          padding: const EdgeInsets.all(4),// Reduced padding
+                                                          padding: const EdgeInsets
+                                                              .all(
+                                                              4), // Reduced padding
                                                           child: Center(
                                                             child:
                                                                 ElevatedButton(
                                                               onPressed: () {
-                                                                Navigator.pushReplacement(
-
+                                                                Navigator
+                                                                    .pushReplacement(
                                                                   context,
-
                                                                   MaterialPageRoute(
-
-                                                                    builder: (context) => MyHomePage(deviceId: _devices[i]['device_Id'].substring(0, 3)),
-
+                                                                    builder: (context) => MyHomePage(
+                                                                        deviceId: _devices[i]['device_Id'].substring(
+                                                                            0,
+                                                                            3)),
                                                                   ),
-
                                                                 );
                                                               },
                                                               style:
@@ -424,10 +433,14 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                                                 backgroundColor:
                                                                     const Color(
                                                                         0xFF037441),
-                                                                    padding: const EdgeInsets
-                                                                        .fromLTRB(5, 10, 5,
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                        .fromLTRB(
+                                                                        5,
+                                                                        10,
+                                                                        5,
                                                                         10),
-                                                                    shape: RoundedRectangleBorder(
+                                                                shape: RoundedRectangleBorder(
                                                                     borderRadius:
                                                                         BorderRadius.circular(
                                                                             10)),
@@ -446,7 +459,6 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                                       ],
                                                     ),
                                                 ],
-
                                               ),
                                             ),
                                           ],
@@ -454,9 +466,7 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                       ),
 
                                       const SizedBox(height: 30),
-
                                     ],
-
                                   )
                                 : Column(
                                     mainAxisSize: MainAxisSize.min,
@@ -473,12 +483,17 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                       const SizedBox(height: 20),
                                       ElevatedButton(
                                         onPressed: () {
-                                          context.read<ISSAASProvider>().setIsSaas(true); // Set isSaas to true
+                                          context
+                                              .read<ISSAASProvider>()
+                                              .setIsSaas(
+                                                  true); // Set isSaas to true
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                               builder: (context) =>
-                                                  const MyHomePage(deviceId: '',), // Pass the boolean value
+                                                  const MyHomePage(
+                                                deviceId: '',
+                                              ), // Pass the boolean value
                                             ),
                                           );
                                         },
@@ -504,11 +519,8 @@ class _DeviceSelectionState extends State<DeviceSelection>
                                     ],
                                   ),
                           ],
-
                         ),
-
                       ),
-
                     ),
                   ),
                 ),

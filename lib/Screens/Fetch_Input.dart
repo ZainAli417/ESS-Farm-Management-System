@@ -1120,8 +1120,7 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       },
     );
   }
-  Map<String, dynamic> _formatPath(List<LatLng> path)
-  {
+  Map<String, dynamic> _formatPath(List<LatLng> path) {
     return {
       'START': {
         'latitude': path.first.latitude,
@@ -1353,7 +1352,6 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                         });
 
                         if (context.read<ISSAASProvider>().isSaas) {
-                          _startMovement_GPS(_dronepath, _selectedPathsQueue);
                           _updateMarkersAndPolyline();
                         } else if (!_isMoving) {
                           if (widget.groundMode) {
@@ -1538,10 +1536,10 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                       onPressed: () async {
 
                         // Ensure a KML is selected before proceeding
-                        if (_selectedChildKMLFile == null) {
+                       /* if (_selectedChildKMLFile == null) {
                           _showSnackbar(context, 'Please choose a spraying KML before proceeding.');
                           return; // Prevent proceeding if no KML file is selected
-                        }
+                        }*/
 
                         if (selectedSegments.isEmpty) {
                           _showWarningDialog(context);
@@ -1585,7 +1583,6 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                         });
 
                         if (context.read<ISSAASProvider>().isSaas) {
-                          _startMovement_GPS(_dronepath, _selectedPathsQueue);
                           _updateMarkersAndPolyline();
                         } else {
                           // Handle movement based on ground mode or UAV/UGV logic
@@ -3179,7 +3176,8 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
 
     _moveToNextSegment();
   }
-  void _startMovement_GPS(List<LatLng> path, List<List<LatLng>> selectedSegments) {
+
+  /*void _startMovement_GPS(List<LatLng> path, List<List<LatLng>> selectedSegments) {
     if (path.isEmpty || _selectedStartingPoint == null) {
       print("Path is empty or starting point not selected, cannot start movement");
       return;
@@ -3296,7 +3294,113 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
 
     });
   }
+*/
+  void _startMovement_GPS(List<LatLng> path, List<List<LatLng>> selectedSegments) {
+    if (path.isEmpty || _selectedStartingPoint == null) {
+      print("Path is empty or starting point not selected, cannot start movement");
+      return;
+    }
+    _isMoving = true;
 
+    // Track total distances
+    double distanceCoveredInWholeJourney = 0.0;
+    double totalDistanceCoveredKM_SelectedPath = 0.0;
+    double segmentDistanceCoveredKM = 0.0; // Distance covered in current segment
+
+    LatLng? _previousPosition;
+
+    // Start GPS tracking
+    _gpsStreamSubscription = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: geo.LocationAccuracy.high,
+      ),
+    ).listen((Position position) {
+      if (!_isMoving) return;
+
+      // Use the exact current GPS position as the car marker position
+      LatLng currentPosition = LatLng(position.latitude, position.longitude);
+
+      // Check if the current position is within the allowed area
+
+
+      // Find the closest point on the path to the current position
+      int closestPointIndex = _findClosestPointIndex(path, currentPosition);
+      LatLng closestPoint = path[closestPointIndex];
+
+      // Smooth the movement if we have a previous position (optional)
+      if (_previousPosition != null) {
+        currentPosition = _smoothLocation(currentPosition, _previousPosition!, 0.3);
+      }
+
+      _previousPosition = currentPosition; // Store this as previous for the next tick
+
+      // Find the closest point on the path
+      double distanceToNextPoint = calculateonelinedistance(currentPosition, closestPoint);
+
+      // Use the speed from GPS to calculate the distance covered
+      double speedInMetersPerSecond = position.speed;
+      double distanceCoveredInThisTickKM = (speedInMetersPerSecond * updateInterval) / 1000.0;
+      segmentDistanceCoveredKM += distanceCoveredInThisTickKM;
+
+      // If the distance covered exceeds the distance to the next point, update index
+      if (segmentDistanceCoveredKM >= distanceToNextPoint) {
+        _currentPointIndex = closestPointIndex + 1;
+        segmentDistanceCoveredKM = 0.0; // Reset segment distance for the next point
+      }
+
+      distanceCoveredInWholeJourney += distanceCoveredInThisTickKM;
+
+      // Check if the current segment is part of the selected spray path
+      bool isSelectedSegment = _isSegmentSelected(path, selectedSegments, closestPointIndex, PathDirection.horizontal);
+
+      if (isSelectedSegment) {
+        totalDistanceCoveredKM_SelectedPath += distanceCoveredInThisTickKM;
+        double remainingDistanceKM_SelectedPath = _totalDistanceKM - totalDistanceCoveredKM_SelectedPath;
+
+        // Update distance and time for the selected segments
+        setState(() {
+          _remainingDistanceKM_SelectedPath = remainingDistanceKM_SelectedPath.clamp(0.0, _totalDistanceKM);
+          _storeTimeLeftInDatabase(_remainingDistanceKM_SelectedPath);
+        });
+
+        // Sync selected path distance with Firebase if covered > 0.5km
+        if (totalDistanceCoveredKM_SelectedPath % 0.5 == 0) {
+          FirebaseDatabase.instance.ref().child('remainingDistance').set(_remainingDistanceKM_SelectedPath);
+        }
+      }
+
+      // Update remaining total path distance
+      setState(() {
+        _markers.removeWhere((marker) => marker.markerId == const MarkerId('gps'));
+        // Add_Car_Marker(isSelectedSegment);
+        // Update the live location marker to be at the closest point on the path
+        _addLiveLocationMarker(isSelectedSegment, closestPoint); // Add marker at the closest path point
+        _remainingDistanceKM_TotalPath = (totalZigzagPathKm - distanceCoveredInWholeJourney)
+            .clamp(0.0, totalZigzagPathKm);
+      });
+
+
+
+      // End of path reached, stop movement
+      if (_currentPointIndex >= path.length - 1) {
+        _isMoving = false;
+        _gpsStreamSubscription?.cancel();
+        _onPathComplete();
+      }
+    });
+
+    // Timer to check Snackbar status every second
+    Timer.periodic(const Duration(seconds: 45), (Timer timer) {
+      if (!_isMoving) {
+        timer.cancel(); // Stop the timer if not moving
+        return;
+      }
+    });
+  }
+
+
+
+// Function to calculate the distance between two points
 
 
 
@@ -3309,14 +3413,12 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
         (currentPosition.longitude - _selectedStartingPoint!.longitude).abs() < epsilon;
   }
 // Helper function to add live location marker exactly at current position
-  void _addLiveLocationMarker(bool isSelectedSegment, LatLng currentPosition) {
+  void _addLiveLocationMarker(bool isSelectedSegment, LatLng closepoint) {
     _markers.add(
       Marker(
         markerId: const MarkerId('gps'),
-        position: currentPosition, // Marker now uses exact current GPS position
-        icon: isSelectedSegment
-            ? spr_active
-            : spr_active,
+        position: closepoint, // Marker now uses exact current GPS position
+        icon:  customcurrentMarkerIcon
       ),
     );
   }
@@ -3511,12 +3613,12 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
 
         _updatePolyline(_routePoints); // Update polyline with stored route points
 
-        _googleMapController.animateCamera(
+      /*  _googleMapController.animateCamera(
           CameraUpdate.newLatLngBounds(
             _boundsFromLatLngList(_routePoints),
             50,
           ),
-        );
+        );*/
       });
     }
   }
@@ -3525,7 +3627,6 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       isNavigating = true;
       is_current = false;
     });
-    LatLng? previousLatLng;
     BitmapDescriptor customMarkerIcon = await BitmapDescriptor.fromAssetImage(
       const ImageConfiguration(size: Size(48, 48)),
       'images/farmer.png',
@@ -3544,22 +3645,6 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
     while (!reachedDestination) {
       LocationData? currentLocation = await _location.getLocation();
       LatLng currentLatLng = _filterLocation(currentLocation);
-
-      double distanceToDestination = _calculateDistance(currentLatLng, _selectedStartingPoint!);
-      if (distanceToDestination < 1) {
-        _showSnackbar_connection(context, 'You have reached your destination!');
-        _updatePolyline([_selectedStartingPoint!]);
-        _clearNavigationData();
-        return;
-      }
-
-      // Calculate bearing (angle) based on movement direction
-      double bearing = 0;
-      if (previousLatLng != null) {
-        bearing = _calculateBearing(previousLatLng, currentLatLng);
-      }
-      previousLatLng = currentLatLng; // Update previous location
-
       Marker currentLocationMarker = Marker(
         markerId: const MarkerId('source'),
         position: currentLatLng,
@@ -3585,9 +3670,8 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
         CameraUpdate.newCameraPosition(
           CameraPosition(
             target: currentLatLng,
-            zoom: 18.0, // Suitable zoom for navigation
-            tilt: 70,    // Tilt to simulate chase view
-            bearing: bearing, // Rotate to align with the user's movement direction
+            zoom: 30.0, // Suitable zoom for navigation
+            tilt: 40,    // Tilt to simulate chase view
           ),
         ),
       );
@@ -3596,20 +3680,22 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       List<LatLng> remainingRoute = allRoutePoints.sublist(stepIndex);
       _updatePolyline(remainingRoute);
       await Future.delayed(const Duration(seconds: 2));
+      if (remainingDistance == 0) {
+
+
+          _showSnackbar_connection(context, 'You have reached your destination!');
+          _updatePolyline([_selectedStartingPoint!]);
+          navpolylines.clear();
+          isNavigating = false;
+          navmarkers.removeWhere((m) => m.markerId == const MarkerId('source'));
+          reachedDestination=false;
+          _startMovement_GPS(_dronepath, _selectedPathsQueue);
+          return;
+        }
+
+
     }
-  }
-  double _calculateBearing(LatLng from, LatLng to) {
-    double lat1 = from.latitude * (pi / 180);
-    double lon1 = from.longitude * (pi / 180);
-    double lat2 = to.latitude * (pi / 180);
-    double lon2 = to.longitude * (pi / 180);
 
-    double dLon = lon2 - lon1;
-    double y = sin(dLon) * cos(lat2);
-    double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
-    double bearing = atan2(y, x) * (180 / pi);
-
-    return (bearing + 360) % 360; // Normalize to 0-360 degrees
   }
 //camera view chekcing testing only map type
   Future<void> _loadCustomMarker() async {
@@ -3710,45 +3796,59 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
 
     return Card(
       color: Colors.white, // Set card background color to white
-      //color: Colors.white70,
       margin: const EdgeInsets.all(6),
       child: Padding(
         padding: const EdgeInsets.all(6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              instruction ?? '',
-              style:  TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Colors.indigo[800], // Set instruction text color to indigo
-                fontFamily:
-                GoogleFonts.poppins().fontFamily,
+        child: SingleChildScrollView( // Allow horizontal scrolling
+          scrollDirection: Axis.horizontal,
+          child: Column(
+            mainAxisSize: MainAxisSize.min, // This allows the column to grow based on content
+            crossAxisAlignment: CrossAxisAlignment.start, // Align text to the start
+            children: [
+              // Instruction Text
+              Text(
+                instruction ?? '',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.indigo[800], // Set instruction text color to indigo
+                  fontFamily: GoogleFonts.poppins().fontFamily,
+                ),
+                softWrap: true, // Enable text wrapping
+                maxLines: null, // Allow the text to wrap to multiple lines without limit
               ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Distance: ${remainingDistance.toStringAsFixed(1)} m  ',
-                  style:  TextStyle(
-                    color: Colors.black87, // Set distance text color to black
-                    fontWeight: FontWeight.w500,
-                    fontFamily: GoogleFonts.poppins().fontFamily,
+              const SizedBox(height: 8),
+
+              // Distance and ETA
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Distance Text
+                  Text(
+                    'Distance: ${remainingDistance.toStringAsFixed(1)} m',
+                    style: TextStyle(
+                      color: Colors.black87, // Set distance text color to black
+                      fontWeight: FontWeight.w500,
+                      fontFamily: GoogleFonts.poppins().fontFamily,
+                    ),
+                    softWrap: true, // Allow wrapping if necessary
+                    maxLines: null, // Allow multiple lines if the text is long
                   ),
-                ),
-                Text(
-                  'ETA: ${eta ~/ 60} min',
-                  style: const TextStyle(
-                    color: Colors.black87, // Set ETA text color to black
-                    fontFamily: 'Poppins', // Use Google Fonts Poppins
+                  const SizedBox(width: 8), // Add some spacing between texts
+                  // ETA Text
+                  Text(
+                    'ETA: ${eta ~/ 60} min',
+                    style: const TextStyle(
+                      color: Colors.black87, // Set ETA text color to black
+                      fontFamily: 'Poppins', // Use Google Fonts Poppins
+                    ),
+                    softWrap: true, // Allow wrapping if necessary
+                    maxLines: null, // Allow multiple lines if the text is long
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -3819,13 +3919,7 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
 
   return points;
   }
-  void _clearNavigationData() {
-    setState(() {
-      navmarkers.clear();
-      navpolylines.clear();
-      isNavigating = false;
-    });
-  }
+
 
 
 //UI BUILD
@@ -4998,17 +5092,27 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                       if (_selectedStartingPoint != null && Provider.of<ISSAASProvider>(context).isSaas)
                         Center(
                           child: Container(
-                            width: double.infinity, // custom width
+                            width: double.infinity, // Take up the full width of the parent container
                             child: Row(
                               children: [
+                                // Check if navigation is active
                                 if (isNavigating)
-                                  Center(
-                                    child: _showNavigationCard(), // Center the navigation card
+                                  Expanded( // This makes the navigation card flexible and prevents overflow
+                                    child: Center(
+                                      child: Scrollbar( // Add a Scrollbar to indicate horizontal scrolling
+                                        thumbVisibility: true, // Always show the scrollbar
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal, // Allow horizontal scrolling
+                                          child: _showNavigationCard(), // Center the navigation card
+                                        ),
+                                      ),
+                                    ),
                                   )
                                 else
+                                // FloatingActionButton with custom size
                                   Container(
-                                    width: 130, // custom width for FAB
-                                    height: 55, // custom height for FAB
+                                    width: 130, // Custom width for FAB
+                                    height: 55, // Custom height for FAB
                                     child: FloatingActionButton.extended(
                                       onPressed: () {
                                         _startNavigation(); // Call the function when FAB is pressed
@@ -5030,6 +5134,7 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                             ),
                           ),
                         ),
+
                     ],
                   ),
                 ),
