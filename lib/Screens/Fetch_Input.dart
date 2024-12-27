@@ -1,3 +1,5 @@
+//verticaly inner try to make the other default lines green
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -74,17 +76,18 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
   Set<Polyline> _polylines = {}; // Store drawn paths
   List<List<LatLng>> _allPaths = []; // All paths loaded
   List<List<LatLng>> _selectedPathsQueue = []; // Selected path segments
-  late List<List<LatLng>>
-  selectedSegments; // Store only selected segments for the journey
+
+  List<int> selectedSegments = []; // Initialization here
   int _currentSegmentIndex = 0; // Track the current segment being traversed
 
   // Polygon and Marker Variables
   Set<Polygon> _FieldPolygons = {}; // Store polygons representing Fields
   Set<Polygon> polygons = {}; // Polygons that make up paths
   Set<Polygon> sprpolygons = {}; // Polygons that make up paths
+  List<LatLng> sprpolygonPoints = []; // Store vertices of polygons
+  List<LatLng> sprayingPathOfChildKML = [];
 
   List<LatLng> polygonPoints = []; // Store vertices of polygons
-  List<LatLng> spraypolygonPoints = []; // Store vertices of polygons
 
   List<Marker> _markers = []; // List of markers
   final List<LatLng> _markerPositions = []; // Marker positions
@@ -102,6 +105,8 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
   double _totalDistanceKM = 0.0;
   double distanceTraveled = 0.0;
   double totalZigzagPathKm = 0.0;
+  double totalZigzagPathKmspray = 0.0;
+
   double TLM = 0.0; // Total Linear Movement
   double totalDistanceCoveredKM_SelectedPath = 0.0;
   double distanceCoveredInWholeJourney = 0.0;
@@ -110,6 +115,9 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
   double _remainingDistanceKM_SelectedPath = 0.0;
   int _currentPointIndex = 0;
   List<LatLng> _dronepath = [];
+  List<LatLng> _spraypath = [];
+
+
   double updateInterval = 0.1; // seconds
 
   // UI and Input Control Variables
@@ -180,7 +188,8 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
   double remainingDistance = 0; // To hold remaining distance
   int eta = 0; // To hold ETA
   LatLng? _lastFilteredLocation;
-  double _smoothingFactor = 0.5; // Adjust as needed
+  double _smoothingFactor = 0.5;
+
   void initState() {
     super.initState();
     _loadCustomMarker();
@@ -523,6 +532,56 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                       },
                     ),
                   ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Choose Spraying KML',
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red[800],
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  if (childKmlFiles.isNotEmpty)
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.indigo),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: DropdownButton<String>(
+                        hint: Text(
+                          'Choose File',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black45,
+                          ),
+                        ),
+                        value: _selectedChildKMLFile,
+                        isExpanded: true,
+                        underline: SizedBox(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedChildKMLFile = newValue;
+
+                            if (_selectedChildKMLFile != null) {
+                              _loadPolylineFromChildFile(_selectedChildKMLFile!);
+                            } else {
+                              _showWarningDialog_KML(context);
+                            }
+                          });
+                        },
+                        items: childKmlFiles.map<DropdownMenuItem<String>>((String file) {
+                          return DropdownMenuItem<String>(
+                            value: file,
+                            child: Text(file),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+
+                  const SizedBox(height: 10),
                   if (isStartingPointEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0),
@@ -555,13 +614,16 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                       Navigator.of(context).pop();
                       extractLatLngPoints();
 
+
                       // Generate path based on direction
-                    if (_isHorizontalDirection && _selectedDirection == PathDirection.horizontal){
+                    if (_isHorizontalDirection && _selectedDirection == PathDirection.horizontal ){
                         dronepath_Horizontal(polygonPoints, _turnLength, _selectedStartingPoint!);
                       }
-                    else if  (!_isHorizontalDirection && _selectedDirection == PathDirection.vertical) {
+                    else if  (!_isHorizontalDirection && _selectedDirection == PathDirection.vertical ) {
                         dronepath_Vertical(polygonPoints, _turnLength, _selectedStartingPoint!);
                       }
+
+
 
                         // Add a slight delay to ensure the map finishes rendering the path
                       await Future.delayed(const Duration(milliseconds: 800)); // Adjust delay as needed
@@ -1079,9 +1141,10 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                         if (_selectedCloudFile != null) {
                           // Check the selected direction and call the appropriate function
                           if (_selectedDirection == PathDirection.vertical) {
-                            _showVerticalRoutesDialog(_selectedCloudFile!); // Call vertical path dialog
+                           // _showVerticalRoutesDialog(_selectedCloudFile!); // Call vertical path dialog
+                            _showVerticalRoutesDialog(_selectedChildKMLFile!); // Call vertical path dialog
                           } else {
-                            _showHorizontalRoutesDialog(_selectedCloudFile!);
+                            _showHorizontalRoutesDialog(_selectedChildKMLFile!);
                           }
                         } else  {
                           if (_selectedDirection == PathDirection.vertical) {
@@ -1156,9 +1219,8 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
     }
   }
 
-
-  void _showHorizontalRoutesDialog(String parentKml) {
-    List<int> selectedSegments = [];
+  /*void _showHorizontalRoutesDialog(String sprayingKml) {
+    selectedSegments.clear(); // Clear previously selected segments
 
     showDialog(
       context: context,
@@ -1194,11 +1256,22 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                 ),
               ),
 
+
+
               content: SizedBox(
                 width: 700,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Text(
+                      'Choose Spraying KML',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red[800],
+                      ),
+                    ),
+                    const SizedBox(height: 5),
                     if (childKmlFiles.isNotEmpty)
                       Container(
                         decoration: BoxDecoration(
@@ -1208,7 +1281,7 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: DropdownButton<String>(
                           hint: Text(
-                            'Choose Spraying KML',
+                            'Choose File',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
@@ -1221,9 +1294,12 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                           onChanged: (String? newValue) {
                             setState(() {
                               _selectedChildKMLFile = newValue;
-                              if (_selectedChildKMLFile == null) {
-                                _showSnackbar(context, 'Please choose a spraying KML before proceeding.');
-                                return; // Prevent proceeding if no KML file is selected
+
+                              if (_selectedChildKMLFile != null) {
+                                _loadPolylineFromChildFile(_selectedChildKMLFile!);
+                                // Automatically select routes in polygon after loading KML
+                              } else {
+                                _showWarningDialog_KML(context);
                               }
                             });
                           },
@@ -1235,67 +1311,44 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                           }).toList(),
                         ),
                       ),
+
                     const SizedBox(height: 10),
 
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.indigo[800],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          // Select all routes
-                          selectedSegments = List.generate(
-                            _dronepath.length ~/ 2,
-                                (i) => i,
-                          );
-                        });
-                      },
-                      child: Text(
-                        'Select All Routes',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
+                    // Only show routes if a KML file is selected
+                    if (_selectedChildKMLFile != null) ...[
+                      Expanded(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _dronepath.length ~/ 2,
+                          itemBuilder: (BuildContext context, int index) {
+                            int routeNumber = index + 1;
+                            bool isSelected = selectedSegments.contains(index);
 
-                    // Routes List
-                    Expanded(
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: _dronepath.length ~/ 2,
-                        itemBuilder: (BuildContext context, int index) {
-                          int routeNumber = index + 1;
-                          bool isSelected = selectedSegments.contains(index);
-
-                          return CheckboxListTile(
-                            title: Text(
-                              'Route #$routeNumber',
-                              style: GoogleFonts.poppins(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
+                            return CheckboxListTile(
+                              title: Text(
+                                'Route #$routeNumber',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
                               ),
-                            ),
-                            value: isSelected,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                if (value == true) {
-                                  selectedSegments.add(index);
-                                } else {
-                                  selectedSegments.remove(index);
-                                }
-                              });
-                            },
-                          );
-                        },
+                              value: isSelected,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  if (value == true) {
+                                    selectedSegments.add(index);
+                                  } else {
+                                    selectedSegments.remove(index);
+                                  }
+                                  _updatePolylineColors(selectedSegments);
+                                });
+                              },
+                            );
+                          },
+                        ),
                       ),
-                    ),
+                    ],
 
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -1305,16 +1358,7 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                         ),
                       ),
                       onPressed: () async {
-                        // Check if a KML file is selected
-
-
-                        if (selectedSegments.isEmpty) {
-                          _showWarningDialog(context);
-                          return;
-                        } else {
-                          Navigator.of(context).pop();
-                        }
-
+                        Navigator.of(context).pop();
                         List<List<LatLng>> selectedPaths = [];
                         List<List<LatLng>> unselectedPaths = [];
                         double totalDistance = 0.0;
@@ -1344,27 +1388,19 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                           _selectedPathsQueue.clear();
                           _selectedPathsQueue.addAll(selectedPaths);
                           _isCustomMode = false;
-                          // Update polyline colors
                           _updatePolylineColors(selectedSegments);
-                          if (_selectedChildKMLFile != null) {
-                            _loadPolylineFromChildFile(_selectedChildKMLFile!);
-                          }
                         });
 
                         if (context.read<ISSAASProvider>().isSaas) {
                           _updateMarkersAndPolyline();
                         } else if (!_isMoving) {
                           if (widget.groundMode) {
-                           // _storePathsInFirebase(selectedPaths, unselectedPaths);
-
                             if (widget.isManualControl) {
                               _startManualMovement_UGV(_dronepath, _selectedPathsQueue, forward: true);
                             } else {
                               _startMovement_UGV(_dronepath, _selectedPathsQueue);
                             }
                           } else {
-                            //_storePathsInFirebase(selectedPaths, unselectedPaths);
-
                             if (widget.isManualControl) {
                               _startManualMovement_UAV(_selectedPathsQueue, forward: true);
                             } else {
@@ -1391,7 +1427,10 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       },
     );
   }
-  void _showVerticalRoutesDialog(String parentKml) {
+
+*/
+
+/* void _showVerticalRoutesDialog(String sprayingKml) {
     List<int> selectedSegments = [];
     List<List<LatLng>> verticalPaths = _allPaths;
 
@@ -1434,40 +1473,6 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (childKmlFiles.isNotEmpty)
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.indigo),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: DropdownButton<String>(
-                          hint: Text(
-                            'Choose Spraying KML',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black45,
-                            ),
-                          ),
-                          value: _selectedChildKMLFile,
-                          isExpanded: true,
-                          underline: SizedBox(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedChildKMLFile = newValue;
-                            });
-                          },
-                          items: childKmlFiles.map<DropdownMenuItem<String>>((String file) {
-                            return DropdownMenuItem<String>(
-                              value: file,
-                              child: Text(file),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-
-                    const SizedBox(height: 10),
 
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -1536,10 +1541,10 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
                       onPressed: () async {
 
                         // Ensure a KML is selected before proceeding
-                       /* if (_selectedChildKMLFile == null) {
-                          _showSnackbar(context, 'Please choose a spraying KML before proceeding.');
+                        if (_selectedChildKMLFile == null) {
+                          _showWarningDialog_KML(context);
                           return; // Prevent proceeding if no KML file is selected
-                        }*/
+                        }
 
                         if (selectedSegments.isEmpty) {
                           _showWarningDialog(context);
@@ -1627,6 +1632,422 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       },
     );
   }
+*/
+  void _showHorizontalRoutesDialog(String sprayingKml) {
+    selectedSegments.clear(); // Clear previously selected segments
+    // Select all paths by default
+    for (int i = 0; i < sprayingPathOfChildKML.length ~/ 2; i++) {
+      selectedSegments.add(i);
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              titlePadding: EdgeInsets.zero,
+              title: Center(
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                  decoration: BoxDecoration(
+                    color: Colors.indigo[800],
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Select One or More Routes to Spray',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              content: SizedBox(
+                width: 700,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+
+
+                    // Only show routes if a KML file is selected
+                      Expanded(
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: sprayingPathOfChildKML.length ~/ 2,
+                          itemBuilder: (BuildContext context, int index) {
+                            int routeNumber = index + 1;
+                            bool isSelected = selectedSegments.contains(index);
+
+                            return CheckboxListTile(
+                              title: Text(
+                                'Route #$routeNumber',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              value: isSelected,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  if (value == true) {
+                                    selectedSegments.add(index);
+                                  } else {
+                                    selectedSegments.remove(index);
+                                  }
+                                  _updatePolylineColors(selectedSegments);
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo[800],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () async {
+                        if (selectedSegments.isEmpty) {
+                          _showWarningDialog(context);
+                          return;
+                        } else {
+                          Navigator.of(context).pop();
+                        }
+                        List<List<LatLng>> selectedPaths = [];
+                        List<List<LatLng>> unselectedPaths = [];
+                        double totalDistance = 0.0;
+
+                        for (int i = 0; i < sprayingPathOfChildKML.length ~/ 2; i++) {
+                          int startIndex = i * 2;
+                          List<LatLng> segment = sprayingPathOfChildKML.sublist(startIndex, startIndex + 2);
+
+                          if (selectedSegments.contains(i)) {
+                            selectedPaths.add(segment);
+                            totalDistance += calculate_selcted_segemnt_distance(segment);
+                          } else {
+                            unselectedPaths.add(segment);
+                          }
+                        }
+
+                        // Store selected and unselected paths in Firebase
+                        _totalDistanceKM = totalDistance;
+                        FirebaseDatabase.instance
+                            .ref()
+                            .child('totalDistance')
+                            .set(_totalDistanceKM);
+
+                        _storeTimeDurationInDatabase(_totalDistanceKM);
+
+                        setState(() {
+                          _selectedPathsQueue.clear();
+                          _selectedPathsQueue.addAll(selectedPaths);
+                          _isCustomMode = false;
+                          _updatePolylineColors(selectedSegments);
+                        });
+                        // ** Call the prerequisite function here **
+                        await _moveToPolygonStart();
+
+                        // Movement logic will be triggered by `_moveToPolygonStart` after reaching the target point
+                      },
+                      child: Text(
+                        'Start Spraying',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  void _showVerticalRoutesDialog(String sprayingKml) {
+    selectedSegments.clear(); // Clear previously selected segments
+    // Select all paths by default
+    for (int i = 0; i < verticalPathOfChildKML.length ~/ 2; i++) {
+      selectedSegments.add(i);
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              titlePadding: EdgeInsets.zero,
+              title: Center(
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                  decoration: BoxDecoration(
+                    color: Colors.indigo[800],
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Select One or More Routes to Spray',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              content: SizedBox(
+                width: 700,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Only show routes if a KML file is selected
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: verticalPathOfChildKML.length ~/ 2, // Adjust based on how your vertical paths are structured
+                        itemBuilder: (BuildContext context, int index) {
+                          int routeNumber = index + 1;
+                          bool isSelected = selectedSegments.contains(index);
+
+                          return CheckboxListTile(
+                            title: Text(
+                              'Route #$routeNumber',
+                              style: GoogleFonts.poppins(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                            ),
+                            value: isSelected,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  selectedSegments.add(index);
+                                } else {
+                                  selectedSegments.remove(index);
+                                }
+                                _updatePolylineColors(selectedSegments, isVertical: true);
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo[800],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () async {
+                        if (selectedSegments.isEmpty) {
+                          _showWarningDialog(context);
+                          return;
+                        } else {
+                          Navigator.of(context).pop();
+                        }
+                        List<List<LatLng>> selectedPaths = [];
+                        List<List<LatLng>> unselectedPaths = [];
+                        double totalDistance = 0.0;
+
+                        for (int i = 0; i < verticalPathOfChildKML.length ~/ 2; i++) {
+                          int startIndex = i * 2;
+                          List<LatLng> segment = verticalPathOfChildKML.sublist(startIndex, startIndex + 2);
+
+                          if (selectedSegments.contains(i)) {
+                            selectedPaths.add(segment);
+                            totalDistance += calculate_selcted_segemnt_distance(segment);
+                          } else {
+                            unselectedPaths.add(segment);
+                          }
+                        }
+
+                        // Store selected and unselected paths in Firebase
+                        _totalDistanceKM = totalDistance;
+                        FirebaseDatabase.instance
+                            .ref()
+                            .child('totalDistance')
+                            .set(_totalDistanceKM);
+
+                        _storeTimeDurationInDatabase(_totalDistanceKM);
+
+                        setState(() {
+                          _selectedPathsQueue.clear();
+                          _selectedPathsQueue.addAll(selectedPaths);
+                          _isCustomMode = false;
+                          _updatePolylineColors(selectedSegments, isVertical: true);
+                        });
+
+                        // ** Call the prerequisite function here **
+                        await _moveToPolygonStart();
+
+                        // Movement logic will be triggered by `_moveToPolygonStart` after reaching the target point
+                      },
+                      child: Text(
+                        'Start Spraying',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  Future<void> _moveToPolygonStart() async {
+    if (_selectedStartingPoint == null || sprpolygonPoints.isEmpty) return;
+
+    LatLng ugvCurrentPosition = _selectedStartingPoint!;
+    LatLng destinationPoint = sprpolygonPoints.first;
+
+    // Place the UGV icon at the starting point
+    setState(() {
+      _updateUgvMarker(ugvCurrentPosition); // Update UGV icon position
+    });
+
+    // Calculate the total distance to the destination
+    double totalDistanceKM = calculateonelinedistance(ugvCurrentPosition, destinationPoint);
+
+    while (!_hasReachedDestination(ugvCurrentPosition, destinationPoint)) {
+      await Future.delayed(Duration(milliseconds: (updateInterval * 1000).toInt())); // Use updateInterval
+
+      // Calculate the distance to move in this tick
+      double distanceCoveredThisTickKM = (speed * updateInterval) / 1000.0;
+
+      // Progress towards the destination
+      double progress = (distanceCoveredThisTickKM / totalDistanceKM).clamp(0.0, 1.0);
+
+      // Interpolate the UGV's next position
+      LatLng nextPoint = _lerpLatLng(ugvCurrentPosition, destinationPoint, progress);
+
+      setState(() {
+        ugvCurrentPosition = nextPoint;
+        _updateUgvMarker(nextPoint); // Update UGV icon position
+      });
+
+      // Update the remaining distance to the destination
+      totalDistanceKM = calculateonelinedistance(ugvCurrentPosition, destinationPoint);
+    }
+
+    // Check if the UGV has reached the first point of the polygon
+    if (_hasReachedDestination(ugvCurrentPosition, destinationPoint)) {
+      // Remove the UGV marker
+      _removeUgvMarker();
+
+      // Trigger movement functions for spraying
+      if (_selectedDirection == PathDirection.horizontal) {
+        _triggerMovementFunctions_horizantal();
+      } else if (_selectedDirection == PathDirection.vertical) {
+        _triggerMovementFunctions();
+      }
+    }
+  }
+  void _removeUgvMarker() {
+    setState(() {
+      _markers.removeWhere((marker) => marker.markerId.value == 'UGV');
+    });
+  }
+
+
+  bool _hasReachedDestination(LatLng current, LatLng destination, {double tolerance = 0.00001}) {
+    return (current.latitude - destination.latitude).abs() < tolerance &&
+        (current.longitude - destination.longitude).abs() < tolerance;
+  }
+
+
+
+  void _updateUgvMarker(LatLng position) {
+    setState(() {
+      _markers.removeWhere((marker) => marker.markerId.value == 'UGV');
+      _markers.add(Marker(
+        markerId: MarkerId('UGV'),
+        position: position,
+        icon: ugv_dead,
+      ));
+    });
+  }
+
+
+  void _triggerMovementFunctions() {
+    // Trigger movement functions based on the logic
+    if (context.read<ISSAASProvider>().isSaas) {
+      _updateMarkersAndPolyline();
+    } else if (!_isMoving) {
+      if (widget.groundMode) {
+        if (widget.isManualControl) {
+          _startManualMovement_UGV(verticalPathOfChildKML, _selectedPathsQueue, forward: true);
+        } else {
+          _startMovement_UGV(verticalPathOfChildKML, _selectedPathsQueue);
+        }
+      } else {
+        if (widget.isManualControl) {
+          _startManualMovement_UAV(_selectedPathsQueue, forward: true);
+        } else {
+          _startMovement_UAV(_selectedPathsQueue);
+        }
+      }
+    }
+  }
+  void _triggerMovementFunctions_horizantal() {
+    // Trigger movement functions based on the logic
+    if (context.read<ISSAASProvider>().isSaas) {
+      _updateMarkersAndPolyline();
+    } else if (!_isMoving) {
+      if (widget.groundMode) {
+        if (widget.isManualControl) {
+          _startManualMovement_UGV(sprayingPathOfChildKML, _selectedPathsQueue, forward: true);
+        } else {
+          _startMovement_UGV(sprayingPathOfChildKML, _selectedPathsQueue);
+        }
+      } else {
+        if (widget.isManualControl) {
+          _startManualMovement_UAV(_selectedPathsQueue, forward: true);
+        } else {
+          _startMovement_UAV(_selectedPathsQueue);
+        }
+      }
+    }
+  }
+
+
+
+
+
   // Helper function to show a SnackBar
   Future<void> _showFileSelectionPopup() async {
     List<String> cloudFiles = await _fetchParentFiles(); // Get list of cloud files
@@ -1917,19 +2338,24 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
     }
     return fileNames;
   }
+
+
   void _updatePolylineColors(List<int> selectedSegments, {bool isVertical = false}) {
     setState(() {
-      // Update horizontal paths
+      // Clear existing polylines
       if (!isVertical) {
-        _polylines.removeWhere(
-                (polyline) => polyline.polylineId.value == 'dronepath');
-        for (int i = 0; i < _dronepath.length ~/ 2; i++) {
+        _polylines.removeWhere((polyline) => polyline.polylineId.value.startsWith('innerPath_'));
+
+        for (int i = 0; i < sprayingPathOfChildKML.length ~/ 2; i++) {
           int startIndex = i * 2;
-          List<LatLng> segment = _dronepath.sublist(startIndex, startIndex + 2);
-          Color color =
-          selectedSegments.contains(i) ? Colors.green : Colors.red;
+          List<LatLng> segment = sprayingPathOfChildKML.sublist(startIndex, startIndex + 2);
+
+          // Color based on whether the segment is selected
+          Color color = selectedSegments.contains(i) ? Colors.amber : Colors.red;
+
+          // Add the updated polyline
           _polylines.add(Polyline(
-            polylineId: PolylineId('dronepath_$i'),
+            polylineId: PolylineId('innerPath_${segment.first.latitude}'),
             points: segment,
             color: color,
             width: 3,
@@ -1939,15 +2365,18 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
           ));
         }
       } else {
-        // Update vertical paths
-        _polylines.removeWhere(
-                (polyline) => polyline.polylineId.value == 'verticalpath');
-        for (int i = 0; i < _allPaths.length; i++) {
-          List<LatLng> segment = _allPaths[i];
-          Color color =
-          selectedSegments.contains(i) ? Colors.green : Colors.red;
+        _polylines.removeWhere((polyline) => polyline.polylineId.value.startsWith('innerVerticalPath_'));
+
+        for (int i = 0; i < verticalPathOfChildKML.length ~/ 2; i++) {
+          int startIndex = i * 2;
+          List<LatLng> segment = verticalPathOfChildKML.sublist(startIndex, startIndex + 2);
+
+          // Color based on whether the segment is selected
+          Color color = selectedSegments.contains(i) ? Colors.amber : Colors.red;
+
+          // Add the updated polyline
           _polylines.add(Polyline(
-            polylineId: PolylineId('verticalpath_$i'),
+            polylineId: PolylineId('innerVerticalPath_${segment.first.latitude}'),
             points: segment,
             color: color,
             width: 3,
@@ -1959,6 +2388,7 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       }
     });
   }
+
   // Warning dialog when no routes are selecte
   void _showWarningDialog(BuildContext context) {
     showDialog(
@@ -1999,7 +2429,234 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
         );
       },
     );
+  }  // Warning dialog when no routes are selecte
+  void _showWarningDialog_KML(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'No Route Selected',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.red,
+            ),
+          ),
+          content: Text(
+            'Please choose a spraying KML before proceeding.',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the warning dialog
+              },
+              child: Text(
+                'Close',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.indigo[800],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
+//WITHOUT TURNS
+  void dronepath_Horizontal_INNER(List<LatLng> innerPolygon, double pathWidth, LatLng startPoint) {
+    if (innerPolygon.isEmpty) return;
+
+    // Sort the inner polygon vertices by latitude to find bounds
+    List<LatLng> sortedByLatInner = List.from(innerPolygon)
+      ..sort((a, b) => a.latitude.compareTo(b.latitude));
+    List<LatLng> sortedByLngInner = List.from(innerPolygon)
+      ..sort((a, b) => a.longitude.compareTo(b.longitude));
+
+    double minLatInner = sortedByLatInner.first.latitude;
+    double maxLatInner = sortedByLatInner.last.latitude;
+    double minLngInner = sortedByLngInner.first.longitude;
+    double maxLngInner = sortedByLngInner.last.longitude;
+
+    double startLatInner = startPoint.latitude.clamp(minLatInner, maxLatInner);
+
+    List<List<LatLng>> innerStraightPaths = [];
+    bool leftToRight = true;
+    double latIncrement = pathWidth / 111111; // Convert meters to degrees latitude
+
+    // Generate horizontal paths with consistent gap but without showing turns
+    for (double lat = startLatInner; lat <= maxLatInner; lat += latIncrement) {
+      List<LatLng> intersections = [];
+      for (int i = 0; i < innerPolygon.length; i++) {
+        LatLng p1 = innerPolygon[i];
+        LatLng p2 = innerPolygon[(i + 1) % innerPolygon.length];
+        if ((p1.latitude <= lat && p2.latitude >= lat) ||
+            (p1.latitude >= lat && p2.latitude <= lat)) {
+          double lng = p1.longitude +
+              (lat - p1.latitude) *
+                  (p2.longitude - p1.longitude) /
+                  (p2.latitude - p1.latitude);
+          intersections.add(LatLng(lat, lng.clamp(minLngInner, maxLngInner)));
+        }
+      }
+      if (intersections.length == 2) {
+        intersections.sort((a, b) => a.longitude.compareTo(b.longitude));
+        innerStraightPaths.add(leftToRight
+            ? [intersections[0], intersections[1]]
+            : [intersections[1], intersections[0]]);
+        leftToRight = !leftToRight;
+      }
+    }
+
+    for (double lat = startLatInner - latIncrement;
+    lat >= minLatInner;
+    lat -= latIncrement) {
+      List<LatLng> intersections = [];
+      for (int i = 0; i < innerPolygon.length; i++) {
+        LatLng p1 = innerPolygon[i];
+        LatLng p2 = innerPolygon[(i + 1) % innerPolygon.length];
+        if ((p1.latitude <= lat && p2.latitude >= lat) ||
+            (p1.latitude >= lat && p2.latitude <= lat)) {
+          double lng = p1.longitude +
+              (lat - p1.latitude) *
+                  (p2.longitude - p1.longitude) /
+                  (p2.latitude - p1.latitude);
+          intersections.add(LatLng(lat, lng.clamp(minLngInner, maxLngInner)));
+        }
+      }
+      if (intersections.length == 2) {
+        intersections.sort((a, b) => a.longitude.compareTo(b.longitude));
+        innerStraightPaths.add(leftToRight
+            ? [intersections[0], intersections[1]]
+            : [intersections[1], intersections[0]]);
+        leftToRight = !leftToRight;
+      }
+    }
+    List<LatLng> innerDronePath = innerStraightPaths.expand((segment) => segment).toList();
+sprayingPathOfChildKML=innerDronePath;
+    double totalDistanceZigzagKm = _calculateTotalDistanceZIGAG(innerDronePath);
+
+    // Visualize only straight polylines, without turns
+    List<Polyline> polylines = innerStraightPaths.map((segment) {
+      return Polyline(
+        polylineId: PolylineId('innerPath_${segment.first.latitude}'),
+        points: innerDronePath,
+        color: Colors.amber,
+        width: 5,
+        jointType: JointType.round,
+        endCap: Cap.roundCap,
+        startCap: Cap.roundCap,
+      );
+    }).toList();
+
+    setState(() {
+      _polylines.addAll(polylines);
+         totalZigzagPathKm = totalDistanceZigzagKm;
+
+    });
+  }
+  List<LatLng> verticalPathOfChildKML = [];
+
+
+
+  void dronepath_Vertical_INNER(List<LatLng> innerPolygon, double pathWidth, LatLng startPoint) {
+    if (innerPolygon.isEmpty) return;
+
+    // Sort the inner polygon vertices by longitude to find bounds
+    List<LatLng> sortedByLngInner = List.from(innerPolygon)
+      ..sort((a, b) => a.longitude.compareTo(b.longitude));
+    List<LatLng> sortedByLatInner = List.from(innerPolygon)
+      ..sort((a, b) => a.latitude.compareTo(b.latitude));
+
+    double minLngInner = sortedByLngInner.first.longitude;
+    double maxLngInner = sortedByLngInner.last.longitude;
+    double minLatInner = sortedByLatInner.first.latitude;
+    double maxLatInner = sortedByLatInner.last.latitude;
+
+    double startLngInner = startPoint.longitude.clamp(minLngInner, maxLngInner);
+
+    List<List<LatLng>> innerStraightPaths = [];
+    bool bottomToTop = true;
+    double lngIncrement = pathWidth / 111111; // Convert meters to degrees longitude
+
+    // Generate vertical paths with consistent gap but without showing turns
+    for (double lng = startLngInner; lng <= maxLngInner; lng += lngIncrement) {
+      List<LatLng> intersections = [];
+      for (int i = 0; i < innerPolygon.length; i++) {
+        LatLng p1 = innerPolygon[i];
+        LatLng p2 = innerPolygon[(i + 1) % innerPolygon.length];
+        if ((p1.longitude <= lng && p2.longitude >= lng) ||
+            (p1.longitude >= lng && p2.longitude <= lng)) {
+          double lat = p1.latitude +
+              (lng - p1.longitude) *
+                  (p2.latitude - p1.latitude) /
+                  (p2.longitude - p1.longitude);
+          intersections.add(LatLng(lat.clamp(minLatInner, maxLatInner), lng));
+        }
+      }
+      if (intersections.length == 2) {
+        intersections.sort((a, b) => a.latitude.compareTo(b.latitude));
+        innerStraightPaths.add(bottomToTop
+            ? [intersections[0], intersections[1]]
+            : [intersections[1], intersections[0]]);
+        bottomToTop = !bottomToTop;
+      }
+    }
+
+    // Process leftward paths (from start longitude to min longitude)
+    for (double lng = startLngInner - lngIncrement; lng >= minLngInner; lng -= lngIncrement) {
+      List<LatLng> intersections = [];
+      for (int i = 0; i < innerPolygon.length; i++) {
+        LatLng p1 = innerPolygon[i];
+        LatLng p2 = innerPolygon[(i + 1) % innerPolygon.length];
+        if ((p1.longitude <= lng && p2.longitude >= lng) ||
+            (p1.longitude >= lng && p2.longitude <= lng)) {
+          double lat = p1.latitude +
+              (lng - p1.longitude) *
+                  (p2.latitude - p1.latitude) /
+                  (p2.longitude - p1.longitude);
+          intersections.add(LatLng(lat.clamp(minLatInner, maxLatInner), lng));
+        }
+      }
+      if (intersections.length == 2) {
+        intersections.sort((a, b) => a.latitude.compareTo(b.latitude));
+        innerStraightPaths.add(bottomToTop
+            ? [intersections[0], intersections[1]]
+            : [intersections[1], intersections[0]]);
+        bottomToTop = !bottomToTop;
+      }
+    }
+
+    List<LatLng> innerDronePath = innerStraightPaths.expand((segment) => segment).toList();
+    verticalPathOfChildKML = innerDronePath;
+    double totalDistanceZigzagKm = _calculateTotalDistanceZIGAG(innerDronePath);
+
+    // Visualize only straight polylines, without turns
+    List<Polyline> polylines = innerStraightPaths.map((segment) {
+      return Polyline(
+        polylineId: PolylineId('innerVerticalPath_${segment.first.longitude}'),
+        points: innerDronePath,
+        color: Colors.amber,
+        width: 5,
+        jointType: JointType.round,
+        endCap: Cap.roundCap,
+        startCap: Cap.roundCap,
+      );
+    }).toList();
+
+    setState(() {
+      _polylines.addAll(polylines);
+      totalZigzagPathKm = totalDistanceZigzagKm;
+    });
+  }
+
   void dronepath_Horizontal(List<LatLng> polygon, double pathWidth, LatLng startPoint) {
     if (polygon.isEmpty) return;
 
@@ -2072,7 +2729,7 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
     straightPaths.expand((segment) => segment).toList();
     dronePath.insert(0, startPoint);
 
-    double totalDistancezigzagKm = _calculateTotalDistanceZIGAG(dronePath);
+    double totalDistanceZigzagKm = _calculateTotalDistanceZIGAG(dronePath);
 
     setState(() {
       _dronepath = straightPaths.expand((segment) => segment).toList();
@@ -2080,7 +2737,7 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
 
       // Clear existing polylines
 
-      // Add updated polyline
+      // Add updated polyline for the first path
       _polylines.add(Polyline(
         polylineId: const PolylineId('dronepath'),
         points: _dronepath,
@@ -2091,7 +2748,7 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
         startCap: Cap.roundCap,
       ));
 
-      totalZigzagPathKm = totalDistancezigzagKm;
+      totalZigzagPathKm = totalDistanceZigzagKm;
     });
   }
   void dronepath_Vertical(List<LatLng> polygon, double pathWidth, LatLng startPoint) {
@@ -2182,6 +2839,193 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       totalZigzagPathKm = totalDistancezigzagKm;
     });
   }
+
+
+  /*void dronepath_Horizontal_INNER(List<LatLng> polygon, double pathWidth, LatLng startPoint) {
+    if (polygon.isEmpty) return;
+
+    List<LatLng> sortedByLat = List.from(polygon)
+      ..sort((a, b) => a.latitude.compareTo(b.latitude));
+    List<LatLng> sortedByLng = List.from(polygon)
+      ..sort((a, b) => a.longitude.compareTo(b.longitude));
+
+    double minLat = sortedByLat.first.latitude;
+    double maxLat = sortedByLat.last.latitude;
+    double minLng = sortedByLng.first.longitude;
+    double maxLng = sortedByLng.last.longitude;
+
+    double startLat = startPoint.latitude.clamp(minLat, maxLat);
+
+    List<List<LatLng>> straightPaths = [];
+    bool leftToRight = true;
+
+    double latIncrement = pathWidth / 111111;
+
+    for (double lat = startLat; lat <= maxLat; lat += latIncrement) {
+      List<LatLng> intersections = [];
+      for (int i = 0; i < polygon.length; i++) {
+        LatLng p1 = polygon[i];
+        LatLng p2 = polygon[(i + 1) % polygon.length];
+        if ((p1.latitude <= lat && p2.latitude >= lat) ||
+            (p1.latitude >= lat && p2.latitude <= lat)) {
+          double lng = p1.longitude +
+              (lat - p1.latitude) *
+                  (p2.longitude - p1.longitude) /
+                  (p2.latitude - p1.latitude);
+          intersections.add(LatLng(lat, lng.clamp(minLng, maxLng)));
+        }
+      }
+      if (intersections.length == 2) {
+        intersections.sort((a, b) => a.longitude.compareTo(b.longitude));
+        straightPaths.add(leftToRight
+            ? [intersections[0], intersections[1]]
+            : [intersections[1], intersections[0]]);
+        leftToRight = !leftToRight;
+      }
+    }
+
+    for (double lat = startLat - latIncrement;
+    lat >= minLat;
+    lat -= latIncrement) {
+      List<LatLng> intersections = [];
+      for (int i = 0; i < polygon.length; i++) {
+        LatLng p1 = polygon[i];
+        LatLng p2 = polygon[(i + 1) % polygon.length];
+        if ((p1.latitude <= lat && p2.latitude >= lat) ||
+            (p1.latitude >= lat && p2.latitude <= lat)) {
+          double lng = p1.longitude +
+              (lat - p1.latitude) *
+                  (p2.longitude - p1.longitude) /
+                  (p2.latitude - p1.latitude);
+          intersections.add(LatLng(lat, lng.clamp(minLng, maxLng)));
+        }
+      }
+      if (intersections.length == 2) {
+        intersections.sort((a, b) => a.longitude.compareTo(b.longitude));
+        straightPaths.add(leftToRight
+            ? [intersections[0], intersections[1]]
+            : [intersections[1], intersections[0]]);
+        leftToRight = !leftToRight;
+      }
+    }
+
+    List<LatLng> sprayPath = straightPaths.expand((segment) => segment).toList();
+    sprayPath.insert(0, startPoint);
+
+    double totalDistanceZigzagKm2 = _calculateTotalDistanceZIGAG(sprayPath);
+
+    setState(() {
+      _spraypath = straightPaths.expand((segment) => segment).toList();
+      _allsprayPaths = straightPaths;
+
+      // Clear existing polylines
+
+      // Add updated polyline for the first path
+      _polylines.add(Polyline(
+        polylineId: const PolylineId('spraypath'),
+        points: _spraypath,
+        color: Colors.green,
+        width: 3,
+        jointType: JointType.round,
+        endCap: Cap.roundCap,
+        startCap: Cap.roundCap,
+      ));
+
+      totalZigzagPathKmspray = totalDistanceZigzagKm2;
+    });
+  }
+  void dronepath_Vertical_INNER(List<LatLng> polygon, double pathWidth, LatLng startPoint) {
+    if (polygon.isEmpty) return;
+
+    List<LatLng> sortedByLng = List.from(polygon)
+      ..sort((a, b) => a.longitude.compareTo(b.longitude));
+
+    double minLng = sortedByLng.first.longitude;
+    double maxLng = sortedByLng.last.longitude;
+
+    double startLng = startPoint.longitude.clamp(minLng, maxLng);
+
+    List<List<LatLng>> straightPaths = [];
+    bool bottomToTop = true;
+
+    double lngIncrement = pathWidth / 111111;
+
+    for (double lng = startLng; lng <= maxLng; lng += lngIncrement) {
+      List<LatLng> intersections = [];
+      for (int i = 0; i < polygon.length; i++) {
+        LatLng p1 = polygon[i];
+        LatLng p2 = polygon[(i + 1) % polygon.length];
+        if ((p1.longitude <= lng && p2.longitude >= lng) ||
+            (p1.longitude >= lng && p2.longitude <= lng)) {
+          double lat = p1.latitude +
+              (lng - p1.longitude) *
+                  (p2.latitude - p1.latitude) /
+                  (p2.longitude - p1.longitude);
+          intersections.add(LatLng(lat, lng));
+        }
+      }
+      if (intersections.length == 2) {
+        intersections.sort((a, b) => a.latitude.compareTo(b.latitude));
+        straightPaths.add(bottomToTop
+            ? [intersections[0], intersections[1]]
+            : [intersections[1], intersections[0]]);
+        bottomToTop = !bottomToTop;
+      }
+    }
+
+    for (double lng = startLng - lngIncrement;
+    lng >= minLng;
+    lng -= lngIncrement) {
+      List<LatLng> intersections = [];
+      for (int i = 0; i < polygon.length; i++) {
+        LatLng p1 = polygon[i];
+        LatLng p2 = polygon[(i + 1) % polygon.length];
+        if ((p1.longitude <= lng && p2.longitude >= lng) ||
+            (p1.longitude >= lng && p2.longitude <= lng)) {
+          double lat = p1.latitude +
+              (lng - p1.longitude) *
+                  (p2.latitude - p1.latitude) /
+                  (p2.longitude - p1.longitude);
+          intersections.add(LatLng(lat, lng));
+        }
+      }
+      if (intersections.length == 2) {
+        intersections.sort((a, b) => a.latitude.compareTo(b.latitude));
+        straightPaths.add(bottomToTop
+            ? [intersections[0], intersections[1]]
+            : [intersections[1], intersections[0]]);
+        bottomToTop = !bottomToTop;
+      }
+    }
+
+    List<LatLng> sprayPath =
+    straightPaths.expand((segment) => segment).toList();
+    sprayPath.insert(0, startPoint);
+
+    double totalDistancezigzagKm2 = _calculateTotalDistanceZIGAG(sprayPath);
+
+    setState(() {
+      _spraypath = straightPaths.expand((segment) => segment).toList();
+      _allsprayPaths = straightPaths;
+
+      // Add updated polyline with correct color
+      _polylines.add(Polyline(
+        polylineId: const PolylineId('spraypath'),
+        points: _spraypath,
+        color: Colors.green,
+        width: 3,
+        jointType: JointType.round,
+        endCap: Cap.roundCap,
+        startCap: Cap.roundCap,
+      ));
+
+      totalZigzagPathKmspray = totalDistancezigzagKm2;
+    });
+  }
+
+*/
+
+
 // Extracting LatLng points from markers
   void extractLatLngPoints() {
     if (polygons.isNotEmpty) {
@@ -2375,6 +3219,8 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       },
     );
   }
+  late LatLng spraystartingPoint;
+
   Future<void> _loadPolylineFromChildFile(String fileName) async {
     try {
       final Reference fileRef = FirebaseStorage.instance.ref().child('spray_kmls/$fileName');
@@ -2384,11 +3230,12 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       if (response.statusCode == 200) {
         final contents = response.body;
 
-
         // Use regex to extract content inside <coordinates> tags
-        final RegExp coordRegExp =
-        RegExp(r'<coordinates>(.*?)<\/coordinates>', dotAll: true);
+        final RegExp coordRegExp = RegExp(r'<coordinates>(.*?)<\/coordinates>', dotAll: true);
         final Iterable<RegExpMatch> matches = coordRegExp.allMatches(contents);
+
+        // Clear previous points for this polygon
+        sprpolygonPoints.clear();
 
         for (var match in matches) {
           final String coordinateData = match.group(1)!.trim();
@@ -2399,31 +3246,38 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
             if (parts.length >= 2) {
               final lng = double.parse(parts[0].trim());
               final lat = double.parse(parts[1].trim());
-              spraypolygonPoints.add(LatLng(lat, lng));
+              sprpolygonPoints.add(LatLng(lat, lng));
             }
           }
         }
 
         // Ensure the polyline is closed by adding the first point at the end
-        if (spraypolygonPoints.isNotEmpty) {
-          spraypolygonPoints.add(spraypolygonPoints.first);
+        if (sprpolygonPoints.isNotEmpty) {
+          sprpolygonPoints.add(sprpolygonPoints.first);
         }
-
-        // Create and store the polyline
 
         // Create and store the polygon with fill color and opacity
         final Polygon spraypolygon = Polygon(
           polygonId: PolygonId('P${sprpolygons.length + 1}'),
-          points: spraypolygonPoints,
-          fillColor: Colors.amberAccent.withOpacity(0.2), // Set fill color with opacity
-          strokeColor: Colors.amber,
-          strokeWidth: 3,
-
+          points: sprpolygonPoints,
+          fillColor: Colors.greenAccent, // Set fill color with opacity
+          strokeColor: Colors.green,
+          strokeWidth: 4,
         );
 
         setState(() {
-          sprpolygons.add(spraypolygon); // Assuming _polygons is a List<Polygon>
+          sprpolygons.add(spraypolygon); // Store the inner polygon
         });
+        LatLng spraystartingPoint = sprpolygonPoints.first;
+
+        // Now, generate the green polyline based on the inner polygon points
+        if (_selectedDirection == PathDirection.horizontal && _selectedChildKMLFile!= null){
+          dronepath_Horizontal_INNER(sprpolygonPoints, _turnLength, spraystartingPoint);
+        }
+        else if  ( _selectedDirection == PathDirection.vertical && _selectedChildKMLFile!= null) {
+          dronepath_Vertical_INNER(sprpolygonPoints, _turnLength, spraystartingPoint);
+        }
+        // Use the first point of the KML file as the starting coordinate
       } else {
         print('Error fetching child KML file: ${response.statusCode}');
       }
@@ -2431,6 +3285,11 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       print('Error loading polyline from child file: $e');
     }
   }
+
+
+
+
+
   Future<void> _loadMarkersFromCloudFile(String fileName) async {
     try {
     // Include the parent folder in the file reference
@@ -2555,9 +3414,6 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
     _isMoving = false;
     _movementTimer?.cancel();
   }
-
-
-
   void _startMovement_UGV(List<LatLng> path, List<List<LatLng>> selectedSegments) {
     if (path.isEmpty || _selectedStartingPoint == null) {
       print(
@@ -2730,9 +3586,6 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       }
     });
   }
-
-
-
   void _startManualMovement_UGV(List<LatLng> path, List<List<LatLng>> selectedSegments, {required bool forward}) {
     if (path.isEmpty || _selectedStartingPoint == null) {
       print("Path is empty or starting point not selected, cannot start movement");
@@ -3176,7 +4029,6 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
 
     _moveToNextSegment();
   }
-
   /*void _startMovement_GPS(List<LatLng> path, List<List<LatLng>> selectedSegments) {
     if (path.isEmpty || _selectedStartingPoint == null) {
       print("Path is empty or starting point not selected, cannot start movement");
@@ -3397,15 +4249,7 @@ class _Fetch_InputState extends State<Fetch_Input> with SingleTickerProviderStat
       }
     });
   }
-
-
-
-// Function to calculate the distance between two points
-
-
-
-
-// Function to determine if the current position is at the destination
+  // Function to determine if the current position is at the destination
   bool _isAtDestination(LatLng currentPosition) {
     // Check if current position is close enough to the selected destination
     const double epsilon = 0.0001; // Adjust this value based on precision needed

@@ -133,6 +133,15 @@ class _MyHomePageState extends State<MyHomePage> {
     return await Geolocator.getCurrentPosition();
   }
 
+// Function to listen to Firebase database for humidity value
+  Stream<String> getHumidityStream() {
+    DatabaseReference ref = FirebaseDatabase.instance.ref('sensor_data/soil_moisture');
+    return ref.onValue.map((event) {
+      return event.snapshot.value.toString(); // Convert value to String
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -459,7 +468,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
                       const SizedBox(height: 15), // Spacing between rows
 
-                      // First GridView for Weather Cards
                       SizedBox(
                         height: 125, // Set the custom height here
                         child: GridView.count(
@@ -471,46 +479,61 @@ class _MyHomePageState extends State<MyHomePage> {
                           children: [
                             Obx(() {
                               return WeatherCard(
-                                iconPath:
-                                    'images/windspeed.png', // Path to your custom icon
+                                iconPath: 'images/windspeed.png', // Path to your custom icon
                                 label: 'Wind Speed',
-                                value:
-                                    '${weatherController.weather.value.windspeed.toStringAsFixed(1)} m/s',
+                                value: '${weatherController.weather.value.windspeed.toStringAsFixed(1)} m/s',
                                 cardColor: Colors.teal,
                                 textColor: Colors.white,
-                                iconColor:
-                                    Colors.white, // Set icon color to white
+                                iconColor: Colors.white, // Set icon color to white
                               );
                             }),
+                            StreamBuilder<String>(
+                              stream: getHumidityStream(), // Fetch humidity from Firebase
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return WeatherCard(
+                                    iconPath: 'images/humidity.png', // Path to your custom icon
+                                    label: 'Moisture',
+                                    value: 'N/A',
+                                    cardColor: Colors.blue,
+                                    textColor: Colors.white,
+                                    iconColor: Colors.white, // Set icon color to white
+                                  );
+                                }
+                                if (snapshot.hasError) {
+                                  return WeatherCard(
+                                    iconPath: 'images/humidity.png', // Path to your custom icon
+                                    label: 'Water Level',
+                                    value: 'Error',
+                                    cardColor: Colors.red,
+                                    textColor: Colors.white,
+                                    iconColor: Colors.white, // Set icon color to white
+                                  );
+                                }
+                                return WeatherCard(
+                                  iconPath: 'images/humidity.png', // Path to your custom icon
+                                  label: 'Water Level',
+                                  value: '${snapshot.data}%', // Display the humidity value
+                                  cardColor: Colors.blue,
+                                  textColor: Colors.white,
+                                  iconColor: Colors.white, // Set icon color to white
+                                );
+                              },
+                            ),
                             Obx(() {
                               return WeatherCard(
-                                iconPath:
-                                    'images/humidity.png', // Path to your custom icon
-                                label: 'Water Level',
-                                value:
-                                    '${weatherController.weather.value.humidity}%',
-                                cardColor: Colors.blue,
-                                textColor: Colors.white,
-                                iconColor:
-                                    Colors.white, // Set icon color to white
-                              );
-                            }),
-                            Obx(() {
-                              return WeatherCard(
-                                iconPath:
-                                    'images/temp.png', // Path to your custom icon
+                                iconPath: 'images/temp.png', // Path to your custom icon
                                 label: 'Temperature',
-                                value:
-                                    '${weatherController.weather.value.temp.toStringAsFixed(1)} C',
+                                value: '${weatherController.weather.value.temp.toStringAsFixed(1)} C',
                                 cardColor: Colors.purple,
                                 textColor: Colors.white,
-                                iconColor:
-                                    Colors.white, // Set icon color to white
+                                iconColor: Colors.white, // Set icon color to white
                               );
                             }),
                           ],
                         ),
                       ),
+
                       if (!context.watch<ISSAASProvider>().isSaas)
                         Padding(
                           padding: const EdgeInsets.fromLTRB(5, 10, 5, 5),
