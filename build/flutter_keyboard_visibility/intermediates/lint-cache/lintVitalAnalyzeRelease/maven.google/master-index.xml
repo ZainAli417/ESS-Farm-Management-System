@@ -24,6 +24,7 @@
   <androidx.bluetooth/>
   <androidx.browser/>
   <androidx.camera/>
+  <androidx.camera.media3/>
   <androidx.camera.viewfinder/>
   <androidx.car/>
   <androidx.car.app/>
@@ -141,6 +142,11 @@
   <androidx.window/>
   <androidx.window.extensions.core/>
   <androidx.work/>
+  <androidx.xr.arcore/>
+  <androidx.xr.compose/>
+  <androidx.xr.compose.material3/>
+  <androidx.xr.runtime/>
+  <androidx.xr.scenecore/>
   <com.android/>
   <com.android.ai-pack/>
   <com.android.application/>

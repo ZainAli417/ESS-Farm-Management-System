@@ -1,17 +1,21 @@
+import 'package:ess_fms/Screens/LoginScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../Screens/Splash.dart';
-import 'Constant/ISSAASProvider.dart';
 import 'Constant/forget_password_provider.dart';
 import 'Constant/login_provider.dart';
 import 'Constant/splash_provider.dart';
-import 'Screens/device_selection.dart';
+import 'Screens/ForgetPasswordScreen.dart';
+import 'Screens/drawer.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // Initialize Firebase
+  );
 
   runApp(const MyApp());
 }
@@ -32,13 +36,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<SplashProvider>(
           create: (_) => SplashProvider(),
         ),
-        ChangeNotifierProvider<ISSAASProvider>(
-          create: (_) => ISSAASProvider(),
-        ),
       ],
       child: const MaterialApp(
-        title: 'Project Drone',
-        home: AuthCheck(), // Determine the initial screen dynamically
+        title: 'ESS-Farm Management System',
+        home: AuthCheck(), // Use AuthCheck to determine whether to show Drawer or Login
       ),
     );
   }
@@ -49,14 +50,14 @@ class AuthCheck extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if a user is already signed in
+    // Check if the user is signed in with FirebaseAuth
     final User? user = FirebaseAuth.instance.currentUser;
 
-    // If the user is signed in, navigate to the Device screen; otherwise, show SplashScreen
+    // If the user is signed in, navigate to the Drawer screen; otherwise, show LoginScreen
     if (user != null) {
-      return DeviceSelection(); // Replace with your Device screen widget
+      return const DrawerNavbar(); // Show the screen with Drawer
     } else {
-      return SplashScreen();
+      return const LoginScreen(); // Show the login screen
     }
   }
 }

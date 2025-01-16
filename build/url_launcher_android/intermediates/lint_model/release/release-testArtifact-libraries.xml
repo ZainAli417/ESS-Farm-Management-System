@@ -13,9 +13,9 @@
       externalAnnotations="annotations.zip"
       proguardRules="proguard.txt"/>
   <library
-      name="io.flutter:flutter_embedding_release:1.0.0-a18df97ca57a249df5d8d68cd0820600223ce262@jar"
-      jars="/root/.gradle/caches/modules-2/files-2.1/io.flutter/flutter_embedding_release/1.0.0-a18df97ca57a249df5d8d68cd0820600223ce262/73e796dcc72053d1d78a3515b9474d76b17795c/flutter_embedding_release-1.0.0-a18df97ca57a249df5d8d68cd0820600223ce262.jar"
-      resolved="io.flutter:flutter_embedding_release:1.0.0-a18df97ca57a249df5d8d68cd0820600223ce262"/>
+      name="io.flutter:flutter_embedding_release:1.0.0-cb4b5fff73850b2e42bd4de7cb9a4310a78ac40d@jar"
+      jars="/root/.gradle/caches/modules-2/files-2.1/io.flutter/flutter_embedding_release/1.0.0-cb4b5fff73850b2e42bd4de7cb9a4310a78ac40d/df73e65ae682c635df1524a146b7d0dcb41f1460/flutter_embedding_release-1.0.0-cb4b5fff73850b2e42bd4de7cb9a4310a78ac40d.jar"
+      resolved="io.flutter:flutter_embedding_release:1.0.0-cb4b5fff73850b2e42bd4de7cb9a4310a78ac40d"/>
   <library
       name="androidx.fragment:fragment:1.7.1@aar"
       jars="/root/.gradle/caches/transforms-3/50d06c487b4048d61826091f513cc848/transformed/fragment-1.7.1/jars/classes.jar"
@@ -351,6 +351,19 @@
       externalAnnotations="annotations.zip"
       proguardRules="proguard.txt"/>
   <library
+      name="com.getkeepsafe.relinker:relinker:1.4.5@aar"
+      jars="/root/.gradle/caches/transforms-3/0c3a964afdcc690ce5fbe43d9e1e911b/transformed/jetified-relinker-1.4.5/jars/classes.jar"
+      resolved="com.getkeepsafe.relinker:relinker:1.4.5"
+      folder="/root/.gradle/caches/transforms-3/0c3a964afdcc690ce5fbe43d9e1e911b/transformed/jetified-relinker-1.4.5"
+      manifest="AndroidManifest.xml"
+      resFolder="res"
+      assetsFolder="assets"
+      lintJar="lint.jar"
+      publicResources="public.txt"
+      symbolFile="R.txt"
+      externalAnnotations="annotations.zip"
+      proguardRules="proguard.txt"/>
+  <library
       name="androidx.interpolator:interpolator:1.0.0@aar"
       jars="/root/.gradle/caches/transforms-3/b5a600c3d827c0a1cd92b753a16d0502/transformed/interpolator-1.0.0/jars/classes.jar"
       resolved="androidx.interpolator:interpolator:1.0.0"
@@ -395,9 +408,9 @@
       proguardRules="proguard.txt"/>
   <library
       name=":@@:url_launcher_android::release"
-      jars="/home/kali/Documents/Project Work/drone_latest/build/url_launcher_android/.transforms/d064bf26240ac429cfc3871350e13ded/transformed/out/jars/classes.jar:/home/kali/Documents/Project Work/drone_latest/build/url_launcher_android/.transforms/d064bf26240ac429cfc3871350e13ded/transformed/out/jars/libs/R.jar"
+      jars="/home/kali/Pictures/drone_latest/build/url_launcher_android/.transforms/eeb1f412457bfb246a05418dac4cde09/transformed/out/jars/classes.jar:/home/kali/Pictures/drone_latest/build/url_launcher_android/.transforms/eeb1f412457bfb246a05418dac4cde09/transformed/out/jars/libs/R.jar"
       resolved="io.flutter.plugins.urllauncher:url_launcher_android:unspecified"
-      folder="/home/kali/Documents/Project Work/drone_latest/build/url_launcher_android/.transforms/d064bf26240ac429cfc3871350e13ded/transformed/out"
+      folder="/home/kali/Pictures/drone_latest/build/url_launcher_android/.transforms/eeb1f412457bfb246a05418dac4cde09/transformed/out"
       manifest="AndroidManifest.xml"
       resFolder="res"
       assetsFolder="assets"

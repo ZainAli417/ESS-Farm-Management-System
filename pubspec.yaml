@@ -1,4 +1,4 @@
-name: project_drone
+name: ess_fms
 description: A new Flutter project.
 publish_to: 'none'
 
@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  font_awesome_flutter: ^10.8.0
   google_maps_flutter: ^2.5.0
   geolocator: ^12.0.0
   flutter_map: ^5.0.0
@@ -21,7 +22,7 @@ dependencies:
   liquid_progress_indicator_v2: ^0.5.0
   flutter_screenutil: ^5.0.0
   screenshot: ^3.0.0
-  image: ^4.2.0
+  image: ^3.0.0
   latlong2: ^0.9.1
   geocoding: ^3.0.0
   flutter_typeahead: ^5.2.0
@@ -40,7 +41,6 @@ dependencies:
   xml: ^6.1.0
   flutter_asset_manager: ^0.0.2
   google_fonts: any
-  flutter_svg: ^2.0.10+1
   percent_indicator: ^4.2.2
   animated_widgets: ^1.1.0
   file_picker: ^8.1.2
@@ -52,6 +52,14 @@ dependencies:
   googlemaps_flutter_webservices: ^1.0.2
   flutter_inappwebview: ^6.1.5
   flutter_keyboard_visibility: ^6.0.0
+  fl_chart: ^0.70.0
+  lucide_icons_flutter: ^1.2.5
+  flutter_svg: ^2.0.17
+  flutter_side_menu: ^0.5.41
+  google_sign_in: ^6.2.2
+
+
+
 
 dev_dependencies:
   flutter_test:
@@ -63,7 +71,3 @@ flutter:
 
   assets:
     - images/
-    - images/logo.png
-    - images/ugv_active.png
-    - images/ugv_dead.png
-
