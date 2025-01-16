@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.project_drone.app-mergeDebugResources-5:/values-h720dp-v13/values-h720dp-v13.xml",
+            "outputFile": "com.example.ess_fms.app-mergeDebugResources-5:/values-h720dp-v13/values-h720dp-v13.xml",
             "map": [
                 {
                     "source": "/root/.gradle/caches/transforms-3/4c11ea7eedf1c5c3d83d43da5d09560d/transformed/appcompat-1.6.1/res/values-h720dp-v13/values-h720dp-v13.xml",

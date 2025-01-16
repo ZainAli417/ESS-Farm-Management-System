@@ -1,125 +1,158 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../Constant/forget_password_provider.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ForgotPasswordScreen extends StatelessWidget {
+  const ForgotPasswordScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
-    final viewInsets = MediaQuery.of(context).viewInsets;
+    return SizedBox(
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: EdgeInsets.only(bottom: viewInsets.bottom),
-      constraints: BoxConstraints(
-        maxWidth: 400,
-        maxHeight: viewInsets.bottom == 0 ? 200 : 800,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header Section
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0A8C52), // Green header
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              child: Row(
+      child: Dialog(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+          child:  SizedBox(
+    width: MediaQuery.of(context).size.width * 0.3, // Adjust width
+
+    child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Forgot Password',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18,
-                      color: Colors.white, // White text
+                    "Forgot Password",
+                    style: GoogleFonts.quicksand(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.close_outlined, color: Colors.white),
-                    onPressed: () => Navigator.of(context).pop(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context), // Close dialog
+                    child: const Icon(
+                      Icons.close,
+                      size: 25,
+                      color: Colors.black,
+                    ),
                   ),
                 ],
               ),
-            ),
-            // Body Section
-
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 5, 20, 1),
-
-                child: SingleChildScrollView(
-                  reverse: true,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      TextField(
-                        onChanged: Provider.of<ForgotPasswordProvider>(context, listen: false).setEmail,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: GoogleFonts.poppins(color: Colors.black87),
-                          hintText: 'johndoe@mail.com',
-                          hintStyle: GoogleFonts.poppins(color: Colors.black87),
-                          prefixIcon: const Icon(Icons.email, color: Colors.black87),
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: 120,
-                        child: ElevatedButton(
-                          onPressed: Provider.of<ForgotPasswordProvider>(context, listen: false).isLoading
-                              ? null
-                              : () async {
-                            await Provider.of<ForgotPasswordProvider>(context, listen: false)
-                                .submitForgotPassword(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0A8C52),
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Provider.of<ForgotPasswordProvider>(context, listen: true).isLoading
-                              ? const CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          )
-                              : Text(
-                            'Submit',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-
-                      ),
-                      const SizedBox(height: 3),
-
-                    ],
-                  ),
+              const SizedBox(height: 8),
+              Text(
+                "Please enter your email and we will send you a link to return to your account",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.quicksand(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF757575),
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+              const ForgotPasswordForm(),
+              SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+              const NoAccountText(),
+            ],
+          ),
+    ),
         ),
       ),
     );
   }
 }
+
+class ForgotPasswordForm extends StatelessWidget {
+  const ForgotPasswordForm({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      child: Column(
+        children: [
+          TextFormField(
+            onSaved: (email) {},
+            onChanged: (email) {},
+            decoration: InputDecoration(
+              hintText: "Enter your email",
+              labelText: "Email",
+              floatingLabelBehavior: FloatingLabelBehavior.always,
+              hintStyle: const TextStyle(color: Color(0xFF757575)),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 15,
+                vertical: 16,
+              ),
+              suffixIcon: const Icon(
+                LucideIcons.mail, // Use the desired icon from Lucide Icons
+                size: 24, // Adjust size as needed
+                color: Color(0xFF9B843E), // Adjust color as needed
+              ),
+              border: authOutlineInputBorder,
+              enabledBorder: authOutlineInputBorder,
+              focusedBorder: authOutlineInputBorder.copyWith(
+                borderSide: const BorderSide(
+                  color: Color.fromRGBO(243, 189, 22, 1.0),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              elevation: 0,
+              backgroundColor: const Color.fromRGBO(132, 114, 58, 1.0),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(70, 48),
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(16)),
+              ),
+            ),
+            child: const Text("Continue"),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class NoAccountText extends StatelessWidget {
+  const NoAccountText({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "Don’t have an account? ",
+          style: GoogleFonts.quicksand(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: const Color.fromRGBO(105, 105, 104, 1.0),
+          ),
+        ),
+        GestureDetector(
+          onTap: () {
+            Navigator.pop(context); // Go back or close dialog
+          },
+          child: Text(
+            "Sign Up",
+            style: GoogleFonts.quicksand(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: const Color.fromRGBO(128, 109, 50, 1.0),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Reusable border for InputDecoration
+const authOutlineInputBorder = OutlineInputBorder(
+  borderSide: BorderSide(color: Color(0xFF757575)),
+  borderRadius: BorderRadius.all(Radius.circular(16)),
+);

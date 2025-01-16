@@ -5,7 +5,7 @@
     type="LIBRARY"
     maven="io.flutter.plugins.firebase.auth:firebase_auth:"
     agpVersion="8.2.1"
-    buildFolder="/home/kali/Documents/Project Work/drone_latest/build/firebase_auth"
+    buildFolder="/home/kali/Pictures/drone_latest/build/firebase_auth"
     bootClassPath="/root/Android/Sdk/platforms/android-34/android.jar:/root/Android/Sdk/build-tools/34.0.0/core-lambda-stubs.jar"
     javaSourceLevel="1.8"
     compileTarget="android-34"

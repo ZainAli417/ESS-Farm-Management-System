@@ -1,6 +1,6 @@
 {
-    "name": "project_drone",
-    "short_name": "project_drone",
+    "name": "ess_fms",
+    "short_name": "ess_fms",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

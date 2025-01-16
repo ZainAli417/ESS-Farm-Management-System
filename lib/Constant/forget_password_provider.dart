@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class ForgotPasswordProvider with ChangeNotifier {
   String _email = '';
-  bool _isLoading = false;
+  final bool _isLoading = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   String get email => _email;

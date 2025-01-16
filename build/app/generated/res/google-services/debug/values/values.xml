@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="firebase_database_url" translatable="false">https://iotcar-9259e-default-rtdb.firebaseio.com</string>
-    <string name="gcm_defaultSenderId" translatable="false">755512017161</string>
-    <string name="google_api_key" translatable="false">AIzaSyA4KeIU0zp8VWxv87UZnwXXQ7Mi7B4J4ZI</string>
-    <string name="google_app_id" translatable="false">1:755512017161:android:c69215a3c627e170bbd3d8</string>
-    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyA4KeIU0zp8VWxv87UZnwXXQ7Mi7B4J4ZI</string>
-    <string name="google_storage_bucket" translatable="false">iotcar-9259e.appspot.com</string>
-    <string name="project_id" translatable="false">iotcar-9259e</string>
+    <string name="default_web_client_id" translatable="false">181208508375-3kop4ceaflh0e3238hn93f44kf1m99fe.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">181208508375</string>
+    <string name="google_api_key" translatable="false">AIzaSyBCy9aMP5z_Av0DXqImrj0ZeebqE1NkF28</string>
+    <string name="google_app_id" translatable="false">1:181208508375:android:8b6fe8cff10b8177998d92</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyBCy9aMP5z_Av0DXqImrj0ZeebqE1NkF28</string>
+    <string name="google_storage_bucket" translatable="false">learning-ms-37dc0.firebasestorage.app</string>
+    <string name="project_id" translatable="false">learning-ms-37dc0</string>
 </resources>

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:project_drone/Screens/homescreen.dart';
 
-import '../Screens/device_selection.dart';
+import '../Screens/drawer.dart';
 
 class LoginProvider with ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
@@ -39,7 +38,7 @@ class LoginProvider with ChangeNotifier {
       if (userCredential.user != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => DeviceSelection()),
+          MaterialPageRoute(builder: (context) => const DrawerNavbar()),
         );
         emailController.clear();
         passwordController.clear();
@@ -91,7 +90,7 @@ class LoginProvider with ChangeNotifier {
           ),
         ),
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(8),
+        margin: const EdgeInsets.all(8),
       ),
     );
   }

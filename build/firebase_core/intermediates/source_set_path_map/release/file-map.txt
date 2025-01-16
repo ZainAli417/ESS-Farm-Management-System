@@ -1,8 +1,8 @@
-io.flutter.plugins.firebase.core.firebase_core-pngs-0 /home/kali/Documents/Project Work/drone_latest/build/firebase_core/generated/res/pngs/release
-io.flutter.plugins.firebase.core.firebase_core-resValues-1 /home/kali/Documents/Project Work/drone_latest/build/firebase_core/generated/res/resValues/release
-io.flutter.plugins.firebase.core.firebase_core-mergeReleaseResources-2 /home/kali/Documents/Project Work/drone_latest/build/firebase_core/intermediates/incremental/release/mergeReleaseResources/merged.dir
-io.flutter.plugins.firebase.core.firebase_core-mergeReleaseResources-3 /home/kali/Documents/Project Work/drone_latest/build/firebase_core/intermediates/incremental/release/mergeReleaseResources/stripped.dir
-io.flutter.plugins.firebase.core.firebase_core-merged_res-4 /home/kali/Documents/Project Work/drone_latest/build/firebase_core/intermediates/merged_res/release
+io.flutter.plugins.firebase.core.firebase_core-pngs-0 /home/kali/Pictures/drone_latest/build/firebase_core/generated/res/pngs/release
+io.flutter.plugins.firebase.core.firebase_core-resValues-1 /home/kali/Pictures/drone_latest/build/firebase_core/generated/res/resValues/release
+io.flutter.plugins.firebase.core.firebase_core-mergeReleaseResources-2 /home/kali/Pictures/drone_latest/build/firebase_core/intermediates/incremental/release/mergeReleaseResources/merged.dir
+io.flutter.plugins.firebase.core.firebase_core-mergeReleaseResources-3 /home/kali/Pictures/drone_latest/build/firebase_core/intermediates/incremental/release/mergeReleaseResources/stripped.dir
+io.flutter.plugins.firebase.core.firebase_core-merged_res-4 /home/kali/Pictures/drone_latest/build/firebase_core/intermediates/merged_res/release
 io.flutter.plugins.firebase.core.firebase_core-core-1.13.1-5 /root/.gradle/caches/transforms-3/0ae515433ff78557881b809a09a6cd59/transformed/core-1.13.1/res
 io.flutter.plugins.firebase.core.firebase_core-jetified-play-services-basement-18.3.0-6 /root/.gradle/caches/transforms-3/14ef25efbfc275a61d7a607c1706f63d/transformed/jetified-play-services-basement-18.3.0/res
 io.flutter.plugins.firebase.core.firebase_core-jetified-lifecycle-process-2.7.0-7 /root/.gradle/caches/transforms-3/15e13608d80b67f0f3300446ad957208/transformed/jetified-lifecycle-process-2.7.0/res

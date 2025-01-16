@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.project_drone.app-mergeReleaseResources-5:/values-pt-rBR/values-pt-rBR.xml",
+            "outputFile": "com.example.ess_fms.app-mergeReleaseResources-5:/values-pt-rBR/values-pt-rBR.xml",
             "map": [
                 {
                     "source": "/root/.gradle/caches/transforms-3/ab35d646782bacd50ac3048e06167c2a/transformed/browser-1.8.0/res/values-pt-rBR/values-pt-rBR.xml",

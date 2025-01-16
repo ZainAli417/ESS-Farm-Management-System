@@ -1,20 +1,20 @@
+import 'package:ess_fms/Screens/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:location/location.dart';
-import 'package:location/location.dart' as gps; // Prefixed location
-
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../Constant/splash_provider.dart';
 import 'LoginScreen.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Ensure Firebase is set up in your project.
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late SplashProvider splashProvider;
 
   @override
@@ -30,19 +30,68 @@ class _SplashScreenState extends State<SplashScreen>
     // Preload the images before rendering
     precacheImage(const AssetImage('images/bg.jpeg'), context);
     precacheImage(const AssetImage('images/logo.png'), context);
-    precacheImage(const AssetImage('images/auto.png'), context);
-    precacheImage(const AssetImage('images/manual.png'), context);
-    precacheImage(const AssetImage('images/saas.png'), context);
     splashProvider.startAnimations();
   }
 
-  final gps.Location _location = gps.Location();
   @override
   void dispose() {
     splashProvider.disposeControllers();
     super.dispose();
   }
 
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _handleGoogleSignIn() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser != null) {
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        final UserCredential userCredential = await _auth.signInWithCredential(credential);
+
+
+        _showSnackbar_connection(context, 'Welcome, ${userCredential.user?.displayName}');
+        Future.delayed(Durations.medium4);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sign-in failed: $e')),
+      );
+    }
+  }
+  void _showSnackbar_connection(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(
+            fontFamily: GoogleFonts.poppins().fontFamily,
+            fontSize: 16,
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        backgroundColor: Colors.green.withOpacity(0.8),
+        duration: const Duration(seconds: 5),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(10),
+          ),
+        ),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.all(8),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<SplashProvider>(
@@ -55,7 +104,6 @@ class _SplashScreenState extends State<SplashScreen>
               child: Image.asset(
                 'images/bg.jpeg',
                 fit: BoxFit.cover,
-                key: const Key("bgImage"),
               ),
             ),
             Consumer<SplashProvider>(
@@ -75,34 +123,11 @@ class _SplashScreenState extends State<SplashScreen>
                         child: Column(
                           children: [
                             Image.asset(
-                              'images/logo.png',
-                              width: 200,
-                              height: 200,
+                              'images/logo1.png',
+                              width: 360,
+                              height: 250,
                             ),
                             const SizedBox(height: 10),
-                            RichText(
-                              textAlign: TextAlign.center,
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'LIMS ',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.black,
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'Robo',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.red,
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -116,7 +141,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => LoginScreen()),
+                                      builder: (context) => const LoginScreen()),
                                 );
                               },
                               icon: const Icon(
@@ -126,14 +151,14 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               label: Text(
                                 'Continue with Email',
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.quicksand(
                                   color: Colors.white,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w600,
                                   fontSize: 18,
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0A8C52),
+                                backgroundColor: const Color.fromRGBO(132, 114, 58, 1.0),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
@@ -149,16 +174,17 @@ class _SplashScreenState extends State<SplashScreen>
                                 await _handleGoogleSignIn();
                               },
                               icon: Image.asset(
-                                'images/cart.png',
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
+                                'images/google.png',
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.contain,
                               ),
                               label: Text(
-                                'Purchase Devices',
-                                style: GoogleFonts.poppins(
-                                  color: Color(0xFF0A8C52),
+                                'Use Google Account',
+                                style: GoogleFonts.quicksand(
+                                  color: const Color(0xFF0A8C52),
                                   fontSize: 18,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
@@ -166,8 +192,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(15),
                                 ),
-                                padding:
-                                    const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                padding: const EdgeInsets.all(15),
                               ),
                             ),
                             const SizedBox(height: 150),
@@ -183,15 +208,5 @@ class _SplashScreenState extends State<SplashScreen>
         ),
       ),
     );
-  }
-
-  Future<void> _handleGoogleSignIn() async {
-    try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithPopup(GoogleAuthProvider());
-      print(userCredential.user?.displayName);
-    } catch (e) {
-      print("Error during Google Sign-In: $e");
-    }
   }
 }

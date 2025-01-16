@@ -41,33 +41,31 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCMAx8lJLo9t_4M-ufstXDu8teLIvYDPXs',
-    appId: '1:755512017161:web:9ddb85d042683e8dbbd3d8',
-    messagingSenderId: '755512017161',
-    projectId: 'iotcar-9259e',
-    authDomain: 'iotcar-9259e.firebaseapp.com',
-    databaseURL: 'https://iotcar-9259e-default-rtdb.firebaseio.com',
-    storageBucket: 'iotcar-9259e.appspot.com',
-    measurementId: 'G-QBXDQ5WCKL',
+    apiKey: 'AIzaSyC4OY3THV8bNpMMszJa22gG9qQrgrRspIs',
+    appId: '1:181208508375:web:ee10ead30320b8b7998d92',
+    messagingSenderId: '181208508375',
+    projectId: 'learning-ms-37dc0',
+    authDomain: 'learning-ms-37dc0.firebaseapp.com',
+    storageBucket: 'learning-ms-37dc0.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyA4KeIU0zp8VWxv87UZnwXXQ7Mi7B4J4ZI',
-    appId: '1:755512017161:android:c69215a3c627e170bbd3d8',
-    messagingSenderId: '755512017161',
-    projectId: 'iotcar-9259e',
-    databaseURL: 'https://iotcar-9259e-default-rtdb.firebaseio.com',
-    storageBucket: 'iotcar-9259e.appspot.com',
+    apiKey: 'AIzaSyBCy9aMP5z_Av0DXqImrj0ZeebqE1NkF28',
+    appId: '1:181208508375:android:8b6fe8cff10b8177998d92',
+    messagingSenderId: '181208508375',
+    projectId: 'learning-ms-37dc0',
+    storageBucket: 'learning-ms-37dc0.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBGcjtoY2hclFtLwT6F-MtGvMW22cnxikA',
-    appId: '1:755512017161:ios:d9ca7eef741f29e3bbd3d8',
-    messagingSenderId: '755512017161',
-    projectId: 'iotcar-9259e',
-    databaseURL: 'https://iotcar-9259e-default-rtdb.firebaseio.com',
-    storageBucket: 'iotcar-9259e.appspot.com',
-    iosBundleId: 'com.example.projectDrone',
+    apiKey: 'AIzaSyB0xI9VASbb7dCakbrTQOE9UBeqpgmyDAQ',
+    appId: '1:181208508375:ios:be8c199837951e8d998d92',
+    messagingSenderId: '181208508375',
+    projectId: 'learning-ms-37dc0',
+    storageBucket: 'learning-ms-37dc0.firebasestorage.app',
+    androidClientId: '181208508375-liv0ne4r7fdoftllfd3e8ats9k62uco9.apps.googleusercontent.com',
+    iosClientId: '181208508375-jtfum007jjviv136rbhbbvor4sfp60lr.apps.googleusercontent.com',
+    iosBundleId: 'com.example.essFms',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
