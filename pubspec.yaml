@@ -13,6 +13,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   font_awesome_flutter: ^10.8.0
   google_maps_flutter: ^2.5.0
+  google_maps_flutter_web: ^0.5.10
   geolocator: ^12.0.0
   flutter_map: ^5.0.0
   get: ^4.6.5
@@ -61,6 +62,7 @@ dependencies:
 
 
 
+  uuid: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

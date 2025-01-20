@@ -1,13 +1,12 @@
+import 'package:ess_fms/Constant/farmer_provider.dart';
 import 'package:ess_fms/Screens/LoginScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import '../Screens/Splash.dart';
 import 'Constant/forget_password_provider.dart';
 import 'Constant/login_provider.dart';
 import 'Constant/splash_provider.dart';
-import 'Screens/ForgetPasswordScreen.dart';
 import 'Screens/drawer.dart';
 import 'firebase_options.dart';
 
@@ -32,6 +31,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<ForgotPasswordProvider>(
           create: (_) => ForgotPasswordProvider(),
+        ),
+        ChangeNotifierProvider<FarmProvider>(
+          create: (_) => FarmProvider(),
         ),
         ChangeNotifierProvider<SplashProvider>(
           create: (_) => SplashProvider(),

@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ),
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(8),
+        margin: const EdgeInsets.all(8),
       ),
     );
   }

@@ -59,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         Future.delayed(Durations.medium4);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          MaterialPageRoute(builder: (context) => const MapScreen()),
         );
       }
     } catch (e) {
@@ -88,7 +88,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           ),
         ),
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(8),
+        margin: const EdgeInsets.all(8),
       ),
     );
   }

@@ -16,9 +16,11 @@ class _DrawerNavbarState extends State<DrawerNavbar> {
   bool _isExpanded = true;
 
   final List<Widget> _children = [
-    const DashboardScreen(),
+    const MapScreen(),
     const Center(child: Text("Inventory Screen")),
     const Center(child: Text("Farm Insights Screen")),
+    const Center(child: Text("settings Screen")),
+    const Center(child: Text("notificaioos Screen")),
     const Center(child: Text("Farm.AI Screen")),
   ];
 
@@ -125,7 +127,7 @@ class _DrawerNavbarState extends State<DrawerNavbar> {
         padding: EdgeInsets.zero,
         children: [
           _buildDrawerItem(
-            index: 0,
+            index: 3,
             icon: Image.asset(
               'images/settings.png', // Path to your custom icon
               width: 35,
@@ -134,7 +136,7 @@ class _DrawerNavbarState extends State<DrawerNavbar> {
             label: 'Account Settings',
           ),
           _buildDrawerItem(
-            index: 1,
+            index: 4,
             icon: Image.asset(
               'images/notification.png', // Path to your custom icon
               width: 35,
@@ -143,7 +145,7 @@ class _DrawerNavbarState extends State<DrawerNavbar> {
             label: 'Notifications',
           ),
           _buildDrawerItem(
-            index: 2,
+            index: 5,
             icon: Image.asset(
               'images/chat.png', // Path to your custom icon
               width: 35,

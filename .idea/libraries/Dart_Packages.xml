@@ -558,7 +558,7 @@
         <entry key="google_maps">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps-6.3.0/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps-8.1.1/lib" />
             </list>
           </value>
         </entry>
@@ -586,14 +586,14 @@
         <entry key="google_maps_flutter_platform_interface">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_platform_interface-2.4.2/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_platform_interface-2.9.5/lib" />
             </list>
           </value>
         </entry>
         <entry key="google_maps_flutter_web">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_web-0.5.4+3/lib" />
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_web-0.5.10/lib" />
             </list>
           </value>
         </entry>
@@ -678,13 +678,6 @@
           <value>
             <list>
               <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/js-0.6.7/lib" />
-            </list>
-          </value>
-        </entry>
-        <entry key="js_wrapping">
-          <value>
-            <list>
-              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/js_wrapping-0.7.4/lib" />
             </list>
           </value>
         </entry>
@@ -1282,12 +1275,12 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/get-4.6.6/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_fonts-6.2.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_identity_services_web-0.3.3/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps-6.3.0/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps-8.1.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter-2.5.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_android-2.6.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_ios-2.3.4/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_platform_interface-2.4.2/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_web-0.5.4+3/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_platform_interface-2.9.5/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_maps_flutter_web-0.5.10/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in-6.2.2/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in_android-6.1.34/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/google_sign_in_ios-5.7.8/lib" />
@@ -1300,7 +1293,6 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/image-3.3.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/intl-0.18.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/js-0.6.7/lib" />
-      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/js_wrapping-0.7.4/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/json_annotation-4.9.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/latlong2-0.9.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/leak_tracker-10.0.7/lib" />
