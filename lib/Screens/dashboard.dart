@@ -12,11 +12,11 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   late GoogleMapController _mapController;
+  List<Polygon> _polygons = [];
+  List<Circle> _circles = [];
   List<LatLng> _currentPolygonPoints = [];
   bool _isDrawing = false;
-  bool _isCircleDrawing = false;
-  bool _isRectangleDrawing = false;
-  bool _isFreehandDrawing = false;
+  String _currentTool = ""; // "circle", "rectangle", or "freehand"
   late LatLng _initialPoint;
   late LatLng _currentDragPoint;
   double _circleRadius = 0.0;
@@ -36,32 +36,11 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  void _startCircleDrawing(LatLng point) {
+  void _startDrawing(String tool, LatLng point) {
     setState(() {
       _isDrawing = true;
-      _isCircleDrawing = true;
-      _isRectangleDrawing = false;
-      _isFreehandDrawing = false;
+      _currentTool = tool;
       _initialPoint = point;
-    });
-  }
-
-  void _startRectangleDrawing(LatLng point) {
-    setState(() {
-      _isDrawing = true;
-      _isRectangleDrawing = true;
-      _isCircleDrawing = false;
-      _isFreehandDrawing = false;
-      _initialPoint = point;
-    });
-  }
-
-  void _startFreehandDrawing() {
-    setState(() {
-      _isDrawing = true;
-      _isFreehandDrawing = true;
-      _isCircleDrawing = false;
-      _isRectangleDrawing = false;
       _currentPolygonPoints.clear();
     });
   }
@@ -69,11 +48,11 @@ class _MapScreenState extends State<MapScreen> {
   void _updateDrawing(LatLng point) {
     setState(() {
       _currentDragPoint = point;
-      if (_isCircleDrawing) {
+      if (_currentTool == "circle") {
         _circleRadius = _calculateDistance(_initialPoint, _currentDragPoint);
-      } else if (_isRectangleDrawing) {
+      } else if (_currentTool == "rectangle") {
         _currentPolygonPoints = _getRectanglePoints(_initialPoint, _currentDragPoint);
-      } else if (_isFreehandDrawing) {
+      } else if (_currentTool == "freehand") {
         _currentPolygonPoints.add(point);
       }
     });
@@ -81,10 +60,36 @@ class _MapScreenState extends State<MapScreen> {
 
   void _finalizeDrawing() {
     setState(() {
+      if (_currentTool == "circle") {
+        _circles.add(
+          Circle(
+            circleId: CircleId(DateTime.now().toString()),
+            center: _initialPoint,
+            radius: _circleRadius,
+            fillColor: Colors.redAccent.withOpacity(0.4),
+            strokeColor: Colors.red,
+            strokeWidth: 3,
+          ),
+        );
+      } else if (_currentTool == "rectangle" || _currentTool == "freehand") {
+        _polygons.add(
+          Polygon(
+            polygonId: PolygonId(DateTime.now().toString()),
+            points: List.from(_currentPolygonPoints),
+            fillColor: Colors.redAccent.withOpacity(0.4),
+            strokeColor: Colors.red,
+            strokeWidth: 3,
+          ),
+        );
+      }
       _isDrawing = false;
-      _isCircleDrawing = false;
-      _isRectangleDrawing = false;
-      _isFreehandDrawing = false;
+    });
+  }
+
+  void _clearShapes() {
+    setState(() {
+      _polygons.clear();
+      _circles.clear();
     });
   }
 
@@ -118,99 +123,104 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: MouseRegion(
-        cursor: _isDrawing ? SystemMouseCursors.precise : SystemMouseCursors.basic,
-        child: GestureDetector(
-          onPanStart: (details) async {
-            if (_mapController != null) {
-              LatLng point = await _mapController.getLatLng(
-                ScreenCoordinate(
-                  x: details.localPosition.dx.toInt(),
-                  y: details.localPosition.dy.toInt(),
-                ),
-              );
-              if (_isCircleDrawing) {
-                _startCircleDrawing(point);
-              } else if (_isRectangleDrawing) {
-                _startRectangleDrawing(point);
-              } else if (_isFreehandDrawing) {
-                setState(() {
-                  _currentPolygonPoints.add(point);
-                });
-              }
+      body: GestureDetector(
+        onPanStart: (details) async {
+          if (_mapController != null) {
+            LatLng point = await _mapController.getLatLng(
+              ScreenCoordinate(
+                x: details.localPosition.dx.toInt(),
+                y: details.localPosition.dy.toInt(),
+              ),
+            );
+            if (_currentTool.isNotEmpty) {
+              _startDrawing(_currentTool, point);
             }
+          }
+        },
+        onPanUpdate: (details) async {
+          if (_isDrawing && _mapController != null) {
+            LatLng point = await _mapController.getLatLng(
+              ScreenCoordinate(
+                x: details.localPosition.dx.toInt(),
+                y: details.localPosition.dy.toInt(),
+              ),
+            );
+            _updateDrawing(point);
+          }
+        },
+        onPanEnd: (details) {
+          if (_isDrawing) {
+            _finalizeDrawing();
+          }
+        },
+        child: GoogleMap(
+          onMapCreated: (controller) {
+            _mapController = controller;
           },
-          onPanUpdate: (details) async {
-            if (_isDrawing && _mapController != null) {
-              LatLng point = await _mapController.getLatLng(
-                ScreenCoordinate(
-                  x: details.localPosition.dx.toInt(),
-                  y: details.localPosition.dy.toInt(),
-                ),
-              );
-              _updateDrawing(point);
-            }
-          },
-          onPanEnd: (details) {
-            if (_isDrawing) {
-              _finalizeDrawing();
-            }
-          },
-          child: GoogleMap(
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
-            initialCameraPosition: CameraPosition(
-              target: _initialPoint,
-              zoom: 15,
-            ),
-            scrollGesturesEnabled: false,
-            zoomGesturesEnabled: false,
-            polygons: {
-              if (_isRectangleDrawing || _isFreehandDrawing)
-                Polygon(
-                  polygonId: const PolygonId('drawing'),
-                  points: _currentPolygonPoints,
-                  fillColor: Colors.blue.withOpacity(0.5),
-                  strokeColor: Colors.blue,
-                  strokeWidth: 2,
-                ),
-            },
-            circles: {
-              if (_isCircleDrawing)
-                Circle(
-                  circleId: const CircleId('circle'),
-                  center: _initialPoint,
-                  radius: _circleRadius,
-                  fillColor: Colors.blue.withOpacity(0.5),
-                  strokeColor: Colors.blue,
-                  strokeWidth: 2,
-                ),
-            },
+          initialCameraPosition: CameraPosition(
+            target: _initialPoint,
+            zoom: 15,
           ),
+          scrollGesturesEnabled: false,
+          zoomGesturesEnabled: false,
+          polygons: {
+            ..._polygons,
+            if ((_isDrawing && (_currentTool == "rectangle" || _currentTool == "freehand")))
+              Polygon(
+                polygonId: const PolygonId('preview'),
+                points: _currentPolygonPoints,
+                fillColor: Colors.blue.withOpacity(0.3),
+                strokeColor: Colors.blue,
+                strokeWidth: 2,
+              ),
+          },
+          circles: {
+            ..._circles,
+            if (_isDrawing && _currentTool == "circle")
+              Circle(
+                circleId: const CircleId('preview'),
+                center: _initialPoint,
+                radius: _circleRadius,
+                fillColor: Colors.blue.withOpacity(0.3),
+                strokeColor: Colors.blue,
+                strokeWidth: 2,
+              ),
+          },
         ),
-
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            onPressed: _startFreehandDrawing,
+            onPressed: () {
+              setState(() {
+                _currentTool = "freehand";
+              });
+            },
             child: const Icon(Icons.brush),
           ),
           const SizedBox(height: 10),
           FloatingActionButton(
             onPressed: () {
-              _startRectangleDrawing(_initialPoint);
+              setState(() {
+                _currentTool = "rectangle";
+              });
             },
             child: const Icon(Icons.crop_square),
           ),
           const SizedBox(height: 10),
           FloatingActionButton(
             onPressed: () {
-              _startCircleDrawing(_initialPoint);
+              setState(() {
+                _currentTool = "circle";
+              });
             },
             child: const Icon(Icons.radio_button_checked),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton(
+            onPressed: _clearShapes,
+            child: const Icon(Icons.clear),
           ),
         ],
       ),
