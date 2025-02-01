@@ -1,24 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqEb5qH08mSFysEOfSTIfTezbhJjJZSRs"></script>
-
   <meta name="google-signin-client_id" content="181208508375-3kop4ceaflh0e3238hn93f44kf1m99fe.apps.googleusercontent.com">
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
@@ -34,12 +17,21 @@
 
   <title>ess_fms</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Google Maps API async loading -->
+  <script>
+    function initializeFlutter() {
+      const script = document.createElement('script');
+      script.src = 'flutter_bootstrap.js';
+      script.type = 'module';
+      document.body.appendChild(script);
+    }
+  </script>
+  <script async defer
+          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqEb5qH08mSFysEOfSTIfTezbhJjJZSRs&callback=initializeFlutter">
+  </script>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
-  <script
-          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqEb5qH08mSFysEOfSTIfTezbhJjJZSRs&libraries=drawing,visualization,places">
-  </script>
-
+<!-- Flutter bootstrap script will be injected here -->
 </body>
 </html>

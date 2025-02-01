@@ -3,10 +3,12 @@ import 'package:ess_fms/Screens/LoginScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'Constant/forget_password_provider.dart';
 import 'Constant/login_provider.dart';
 import 'Constant/splash_provider.dart';
+import 'Screens/dashboard.dart';
 import 'Screens/drawer.dart';
 import 'firebase_options.dart';
 
@@ -29,19 +31,24 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<LoginProvider>(
           create: (_) => LoginProvider(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => MapDrawingProvider(),
+        ),
         ChangeNotifierProvider<ForgotPasswordProvider>(
           create: (_) => ForgotPasswordProvider(),
         ),
-        ChangeNotifierProvider<FarmProvider>(
-          create: (_) => FarmProvider(),
-        ),
+
         ChangeNotifierProvider<SplashProvider>(
           create: (_) => SplashProvider(),
         ),
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
+        theme: ThemeData(
+          textTheme: GoogleFonts.quicksandTextTheme(),
+        ),
         title: 'ESS-Farm Management System',
-        home: AuthCheck(), // Use AuthCheck to determine whether to show Drawer or Login
+        home: const AuthCheck(), // Use AuthCheck to determine whether to show Drawer or Login
+        //home: const MapScreen(), // Use AuthCheck to determine whether to show Drawer or Login
       ),
     );
   }
@@ -60,6 +67,8 @@ class AuthCheck extends StatelessWidget {
       return const DrawerNavbar(); // Show the screen with Drawer
     } else {
       return const LoginScreen(); // Show the login screen
+      //return const DrawerNavbar(); // Show the login screen
+
     }
   }
 }
