@@ -13,10 +13,10 @@ dependencies:
   cupertino_icons: ^1.0.2
   turf: ^0.0.10
   rxdart: ^0.28.0
+  geolocator: ^13.0.2
   font_awesome_flutter: ^10.8.0
   google_maps_flutter: ^2.5.0
   google_maps_flutter_web: ^0.5.10
-  geolocator: ^12.0.0
   flutter_map: ^5.0.0
   get: ^4.6.5
   url_launcher: ^6.0.12

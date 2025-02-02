@@ -291,7 +291,7 @@ class _DrawerNavbarState extends State<DrawerNavbar> {
                           duration: const Duration(milliseconds: 600),
                           height: 2,
                           width: width,
-                          color: Colors.teal.shade500,
+                          color: Color(0xFF826407),
                         );
                       },
                     ),
