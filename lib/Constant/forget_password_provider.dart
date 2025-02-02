@@ -41,9 +41,7 @@ class ForgotPasswordProvider with ChangeNotifier {
             ),
           ),
         ),
-
         content: Column(
-
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(

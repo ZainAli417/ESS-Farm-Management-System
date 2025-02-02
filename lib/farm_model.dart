@@ -24,8 +24,9 @@ class FarmPlot {
       'id': id,
       'name': name,
       'area': area,
-      'coordinates': coordinates.map((latLng) =>
-      {'lat': latLng.latitude, 'lng': latLng.longitude}).toList(),
+      'coordinates': coordinates
+          .map((latLng) => {'lat': latLng.latitude, 'lng': latLng.longitude})
+          .toList(),
       'createdAt': createdAt.millisecondsSinceEpoch,
       'geoHash': geoHash,
     };

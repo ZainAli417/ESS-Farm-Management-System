@@ -91,16 +91,18 @@ class _LoginScreenState extends State<LoginScreen>
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser != null) {
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
         final AuthCredential credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken,
           idToken: googleAuth.idToken,
         );
 
-        final UserCredential userCredential = await _auth.signInWithCredential(credential);
+        final UserCredential userCredential =
+            await _auth.signInWithCredential(credential);
 
-
-        _showSnackbar_connection(context, 'Welcome, ${userCredential.user?.displayName}');
+        _showSnackbar_connection(
+            context, 'Welcome, ${userCredential.user?.displayName}');
         Future.delayed(Durations.medium4);
         Navigator.pushReplacement(
           context,
@@ -113,6 +115,7 @@ class _LoginScreenState extends State<LoginScreen>
       );
     }
   }
+
   void _showSnackbar_connection(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -149,13 +152,9 @@ class _LoginScreenState extends State<LoginScreen>
               fit: BoxFit.cover,
             ),
           ),
-
-
-
           SlideTransition(
             position: _slideAnimation,
             child: Center(
-
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: BackdropFilter(
@@ -171,9 +170,8 @@ class _LoginScreenState extends State<LoginScreen>
                       children: [
                         Container(
                           width: MediaQuery.of(context).size.width * 0.4,
-                          padding: const EdgeInsets.fromLTRB( 10,10,10,5),
-
-                         child:  Center(
+                          padding: const EdgeInsets.fromLTRB(10, 10, 10, 5),
+                          child: Center(
                             child: Image.asset(
                               'images/logo1.png', // Ensure the logo image exists in assets
                               width: 360,
@@ -192,10 +190,10 @@ class _LoginScreenState extends State<LoginScreen>
                                   const SizedBox(height: 20),
                                   TextFormField(
                                     controller:
-                                    Provider.of<LoginProvider>(context)
-                                        .emailController,
+                                        Provider.of<LoginProvider>(context)
+                                            .emailController,
                                     style:
-                                    const TextStyle(color: Colors.black87),
+                                        const TextStyle(color: Colors.black87),
                                     decoration: InputDecoration(
                                       labelText: 'Email',
                                       labelStyle: GoogleFonts.poppins(
@@ -220,11 +218,11 @@ class _LoginScreenState extends State<LoginScreen>
                                   const SizedBox(height: 20),
                                   TextFormField(
                                     controller:
-                                    Provider.of<LoginProvider>(context)
-                                        .passwordController,
+                                        Provider.of<LoginProvider>(context)
+                                            .passwordController,
                                     obscureText: !_passwordVisible,
                                     style:
-                                    const TextStyle(color: Colors.black87),
+                                        const TextStyle(color: Colors.black87),
                                     decoration: InputDecoration(
                                       labelText: 'Password',
                                       labelStyle: GoogleFonts.poppins(
@@ -244,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         onPressed: () {
                                           setState(() {
                                             _passwordVisible =
-                                            !_passwordVisible;
+                                                !_passwordVisible;
                                           });
                                         },
                                       ),
@@ -299,31 +297,32 @@ class _LoginScreenState extends State<LoginScreen>
                                               },
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor:
-                                                const Color.fromRGBO(
-                                                    132, 114, 58, 1.0),
+                                                    const Color.fromRGBO(
+                                                        132, 114, 58, 1.0),
                                                 padding:
-                                                const EdgeInsets.symmetric(
-                                                    horizontal: 60,
-                                                    vertical: 15),
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 60,
+                                                        vertical: 15),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                  BorderRadius.circular(8),
+                                                      BorderRadius.circular(8),
                                                 ),
                                               ),
                                               child: loginProvider.isLoading
                                                   ? const CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor:
-                                                AlwaysStoppedAnimation(
-                                                    Colors.white),
-                                              )
+                                                      strokeWidth: 2,
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation(
+                                                              Colors.white),
+                                                    )
                                                   : Text(
-                                                'Sign in',
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 18,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
+                                                      'Sign in',
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                        fontSize: 18,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
                                             );
                                           },
                                         ),
@@ -349,7 +348,8 @@ class _LoginScreenState extends State<LoginScreen>
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.white,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(15),
+                                              borderRadius:
+                                                  BorderRadius.circular(15),
                                             ),
                                             padding: const EdgeInsets.all(15),
                                           ),
@@ -370,7 +370,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         ),
                                         Row(
                                           mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                              MainAxisAlignment.center,
                                           children: [
                                             TextButton(
                                               onPressed: () async {
@@ -389,7 +389,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                   color: Colors.black87,
                                                   fontWeight: FontWeight.w500,
                                                   decoration:
-                                                  TextDecoration.underline,
+                                                      TextDecoration.underline,
                                                 ),
                                               ),
                                             ),
@@ -412,7 +412,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                   color: Colors.black87,
                                                   fontWeight: FontWeight.w500,
                                                   decoration:
-                                                  TextDecoration.underline,
+                                                      TextDecoration.underline,
                                                 ),
                                               ),
                                             ),

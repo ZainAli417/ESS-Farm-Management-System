@@ -37,20 +37,21 @@ class MapDrawingProvider with ChangeNotifier {
   List<Marker> _tempMarkers = [];
   List<LatLng> currentPolylinePoints = [];
   Set<Marker> get allMarkers => {
-    ...markers,
-    ..._tempMarkers,
-  };
+        ...markers,
+        ..._tempMarkers,
+      };
   Set<Polygon> get allPolygons => {
-    ...polygons,
-    if (isDrawing && (currentTool == "rectangle" || currentTool == "freehand"))
-      Polygon(
-        polygonId: const PolygonId('preview'),
-        points: currentPolygonPoints,
-        fillColor: Colors.blue.withOpacity(0.3),
-        strokeColor: Colors.blue,
-        strokeWidth: 2,
-      ),
-  };
+        ...polygons,
+        if (isDrawing &&
+            (currentTool == "rectangle" || currentTool == "freehand"))
+          Polygon(
+            polygonId: const PolygonId('preview'),
+            points: currentPolygonPoints,
+            fillColor: Colors.blue.withOpacity(0.3),
+            strokeColor: Colors.blue,
+            strokeWidth: 2,
+          ),
+      };
   Set<Polyline> get allPolylines {
     final Set<Polyline> lines = {
       ...polylines, // permanent polylines (already saved)
@@ -104,18 +105,21 @@ class MapDrawingProvider with ChangeNotifier {
 
     return lines;
   }
+
   Set<Circle> get allCircles => {
-    ...circles,
-    if (isDrawing && currentTool == "circle" && initialPointForDrawing != null)
-      Circle(
-        circleId: const CircleId('preview'),
-        center: initialPointForDrawing!,
-        radius: circleRadius,
-        fillColor: Colors.blue.withOpacity(0.3),
-        strokeColor: Colors.blue,
-        strokeWidth: 2,
-      ),
-  };
+        ...circles,
+        if (isDrawing &&
+            currentTool == "circle" &&
+            initialPointForDrawing != null)
+          Circle(
+            circleId: const CircleId('preview'),
+            center: initialPointForDrawing!,
+            radius: circleRadius,
+            fillColor: Colors.blue.withOpacity(0.3),
+            strokeColor: Colors.blue,
+            strokeWidth: 2,
+          ),
+      };
   List<Polyline> _tempPolylines = []; // Temporary polylines for current drawing
   bool isFarmDetailsVisible = false;
   MapType _mapType = MapType.normal;
@@ -125,7 +129,6 @@ class MapDrawingProvider with ChangeNotifier {
     MapType.satellite,
     MapType.hybrid
   ];
-
 
   void setMapController(GoogleMapController controller) {
     mapController = controller;
@@ -178,12 +181,16 @@ class MapDrawingProvider with ChangeNotifier {
 
     // Optionally, wait for 2 seconds before animating.
     await Future.delayed(const Duration(seconds: 2));
-
+    animateCameraTo(initialPoint);
     // Animate the camera to the new position.
+  }
+
+  // Add this method inside your MapDrawingProvider class:
+  void animateCameraTo(LatLng latLng) {
     if (mapController != null) {
       mapController!.animateCamera(
         CameraUpdate.newCameraPosition(
-          CameraPosition(target: initialPoint, zoom: 20),
+          CameraPosition(target: latLng, zoom: 20),
         ),
       );
     }
@@ -193,6 +200,7 @@ class MapDrawingProvider with ChangeNotifier {
     _mapType = newMapType;
     notifyListeners();
   }
+
   Future<void> _showFarmDetailsDialog(BuildContext context) async {
     final area = _calculatePolygonArea(currentPolygonPoints);
 
@@ -230,7 +238,8 @@ class MapDrawingProvider with ChangeNotifier {
                 ),
                 const SizedBox(height: 15),
                 _FarmDetailsRow(title: "Farm ID:", value: farmId),
-                _FarmDetailsRow(title: "Area:", value: _formatArea(area, selectedAreaUnit)),
+                _FarmDetailsRow(
+                    title: "Area:", value: _formatArea(area, selectedAreaUnit)),
               ],
             ),
             actions: [
@@ -240,22 +249,21 @@ class MapDrawingProvider with ChangeNotifier {
                   Navigator.pop(context);
                   _resetToolSelection();
                   notifyListeners();
-
                 },
                 child: const Text("Discard"),
               ),
               ElevatedButton(
                 onPressed: _tempFarmName.isNotEmpty
                     ? () {
-                  _saveFarmPlot(context, farmId, area);
-                  // Transfer temporary shapes to the permanent lists
-                  polygons.addAll(_tempPolygons);
-                  markers.addAll(_tempMarkers);
-                  _tempPolygons.clear();
-                  _tempMarkers.clear();
-                  Navigator.pop(context);
-                  _resetToolSelection();
-                }
+                        _saveFarmPlot(context, farmId, area);
+                        // Transfer temporary shapes to the permanent lists
+                        polygons.addAll(_tempPolygons);
+                        markers.addAll(_tempMarkers);
+                        _tempPolygons.clear();
+                        _tempMarkers.clear();
+                        Navigator.pop(context);
+                        _resetToolSelection();
+                      }
                     : null,
                 child: const Text("Save"),
               ),
@@ -267,10 +275,12 @@ class MapDrawingProvider with ChangeNotifier {
 
     _resetToolSelection();
   }
+
   void addMarkerAndUpdatePolyline(BuildContext context, LatLng point) {
     if (currentTool != "marker") return;
 
-    final String markerIdValue = 'temp_marker_${DateTime.now().millisecondsSinceEpoch}';
+    final String markerIdValue =
+        'temp_marker_${DateTime.now().millisecondsSinceEpoch}';
     final MarkerId markerId = MarkerId(markerIdValue);
 
     // If this is the first marker, add it with a callback for closing the polygon.
@@ -282,7 +292,8 @@ class MapDrawingProvider with ChangeNotifier {
           position: point,
           onTap: () {
             // If the first marker is tapped again, close the polygon.
-            if (currentPolylinePoints.isNotEmpty && point == currentPolylinePoints.first) {
+            if (currentPolylinePoints.isNotEmpty &&
+                point == currentPolylinePoints.first) {
               _closeAndFillPolygon(context);
             }
           },
@@ -313,6 +324,7 @@ class MapDrawingProvider with ChangeNotifier {
     currentDragPoint = null;
     notifyListeners();
   }
+
   void _closeAndFillPolygon(BuildContext context) {
     // Create a closed polygon by adding the first point at the end.
     List<LatLng> closedPolygon = List.from(currentPolylinePoints)
@@ -347,6 +359,7 @@ class MapDrawingProvider with ChangeNotifier {
     currentDragPoint = null;
     notifyListeners();
   }
+
   void clearCurrentFarm() {
     currentPolygonPoints.clear();
     currentPolylinePoints.clear();
@@ -354,21 +367,25 @@ class MapDrawingProvider with ChangeNotifier {
     _tempPolylines.clear();
 
     // Remove any temporary markers that might have been (if they ended up in permanent list)
-    markers.removeWhere((marker) => marker.markerId.value.startsWith('temp_marker_'));
+    markers.removeWhere(
+        (marker) => marker.markerId.value.startsWith('temp_marker_'));
 
     isDrawing = false;
     notifyListeners();
   }
+
   void _updatePolylines() {
     // Remove any existing temporary marker-drawing polyline(s)
-    _tempPolylines.removeWhere((line) => line.polylineId.value.startsWith('temp_polyline_'));
+    _tempPolylines.removeWhere(
+        (line) => line.polylineId.value.startsWith('temp_polyline_'));
 
     if (currentTool == "marker" &&
         currentPolylinePoints.isNotEmpty &&
         currentDragPoint != null) {
       _tempPolylines.add(
         Polyline(
-          polylineId: PolylineId('temp_polyline_${DateTime.now().millisecondsSinceEpoch}'),
+          polylineId: PolylineId(
+              'temp_polyline_${DateTime.now().millisecondsSinceEpoch}'),
           points: [currentPolylinePoints.last, currentDragPoint!],
           color: Colors.blue,
           width: 2,
@@ -381,7 +398,8 @@ class MapDrawingProvider with ChangeNotifier {
     if (isDrawing &&
         (currentTool == "rectangle" || currentTool == "freehand") &&
         currentPolygonPoints.isNotEmpty) {
-      _tempPolylines.removeWhere((line) => line.polylineId.value == 'temp_polyline_preview');
+      _tempPolylines.removeWhere(
+          (line) => line.polylineId.value == 'temp_polyline_preview');
       _tempPolylines.add(
         Polyline(
           polylineId: const PolylineId('temp_polyline_preview'),
@@ -395,18 +413,14 @@ class MapDrawingProvider with ChangeNotifier {
     notifyListeners();
   }
 
-
-
   // ******************************************************************
   // Modified Marker Drawing Logic: Now requires a BuildContext so that
   // when a closed polygon is formed, the dialog box is displayed.
   // ******************************************************************
 
-
   // ******************************************************************
   // End of Marker Drawing modifications.
   // ******************************************************************
-
 
   void finalizePolylineAndCreateFarm() {
     if (currentPolylinePoints.length < 3) return;
@@ -445,6 +459,7 @@ class MapDrawingProvider with ChangeNotifier {
     polylines.clear();
     notifyListeners();
   }
+
   double _calculatePolygonArea(List<LatLng> points) {
     if (points.length < 3) return 0.0;
     final turfPolygon = turf.Polygon(
@@ -454,6 +469,7 @@ class MapDrawingProvider with ChangeNotifier {
     );
     return (turf.area(turfPolygon) ?? 0.0).toDouble();
   }
+
   String _selectedAreaUnit = 'ha';
   String get selectedAreaUnit => _selectedAreaUnit;
 
@@ -463,6 +479,7 @@ class MapDrawingProvider with ChangeNotifier {
     _selectedAreaUnit = newUnit;
     notifyListeners();
   }
+
   // Modified _formatArea function
   String _formatArea(double area, String unit) {
     switch (unit) {
@@ -476,8 +493,6 @@ class MapDrawingProvider with ChangeNotifier {
     }
   }
 
-
-
   void setCurrentTool(String tool) {
     if (tool == "hand") {
       isDrawing = false;
@@ -489,6 +504,7 @@ class MapDrawingProvider with ChangeNotifier {
     }
     notifyListeners();
   }
+
   void startDrawing(String tool, LatLng point) {
     isDrawing = true;
     currentTool = tool;
@@ -497,14 +513,17 @@ class MapDrawingProvider with ChangeNotifier {
     if (tool == "marker") polylinePoints.clear();
     notifyListeners();
   }
+
   void updateDrawing(LatLng point) {
     currentDragPoint = point;
     switch (currentTool) {
       case "circle":
-        circleRadius = _calculateDistance(initialPointForDrawing!, currentDragPoint!);
+        circleRadius =
+            _calculateDistance(initialPointForDrawing!, currentDragPoint!);
         break;
       case "rectangle":
-        currentPolygonPoints = _getRectanglePoints(initialPointForDrawing!, currentDragPoint!);
+        currentPolygonPoints =
+            _getRectanglePoints(initialPointForDrawing!, currentDragPoint!);
         break;
       case "freehand":
         currentPolygonPoints.add(point);
@@ -515,10 +534,11 @@ class MapDrawingProvider with ChangeNotifier {
     }
     notifyListeners();
   }
+
   void finalizeDrawing(BuildContext context) {
     if ((currentTool == "rectangle" ||
-        currentTool == "freehand" ||
-        currentTool == "marker") &&
+            currentTool == "freehand" ||
+            currentTool == "marker") &&
         currentPolygonPoints.isNotEmpty) {
       _tempPolygons.add(
         Polygon(
@@ -537,11 +557,13 @@ class MapDrawingProvider with ChangeNotifier {
     }
     notifyListeners();
   }
+
   void _resetToolSelection() {
     currentTool = "";
     _toolSelected = false;
     notifyListeners();
   }
+
   void loadFarms() {
     FarmPlot.loadFarms().listen((loadedFarms) {
       if (loadedFarms.isNotEmpty) {
@@ -566,6 +588,7 @@ class MapDrawingProvider with ChangeNotifier {
       notifyListeners();
     });
   }
+
   void selectFarm(FarmPlot farm) {
     selectedFarm = farm;
     farmNameController.text = farm.name;
@@ -591,6 +614,7 @@ class MapDrawingProvider with ChangeNotifier {
 
     notifyListeners();
   }
+
   void closeFarmDetails() {
     isFarmDetailsVisible = false;
     notifyListeners();
@@ -599,6 +623,7 @@ class MapDrawingProvider with ChangeNotifier {
       notifyListeners();
     });
   }
+
   Future<void> updateFarmName(String newName) async {
     if (selectedFarm == null) return;
 
@@ -612,10 +637,13 @@ class MapDrawingProvider with ChangeNotifier {
 
     notifyListeners();
   }
-  Future<void> _saveFarmPlot(BuildContext context, String id, double area) async {
+
+  Future<void> _saveFarmPlot(
+      BuildContext context, String id, double area) async {
     if (currentPolygonPoints.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error: No coordinates found for the farm!")),
+        const SnackBar(
+            content: Text("Error: No coordinates found for the farm!")),
       );
       return;
     }
@@ -676,6 +704,7 @@ class MapDrawingProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
   double _calculateDistance(LatLng p1, LatLng p2) {
     const radius = 6371e3;
     final dLat = _toRadians(p2.latitude - p1.latitude);
@@ -683,17 +712,19 @@ class MapDrawingProvider with ChangeNotifier {
     final a = sin(dLat / 2) * sin(dLat / 2) +
         cos(_toRadians(p1.latitude)) *
             cos(_toRadians(p2.latitude)) *
-            sin(dLng / 2) * sin(dLng / 2);
+            sin(dLng / 2) *
+            sin(dLng / 2);
     return radius * 2 * atan2(sqrt(a), sqrt(1 - a));
   }
+
   double _toRadians(double degree) => degree * pi / 180;
   List<LatLng> _getRectanglePoints(LatLng start, LatLng end) => [
-    start,
-    LatLng(start.latitude, end.longitude),
-    end,
-    LatLng(end.latitude, start.longitude),
-    start,
-  ];
+        start,
+        LatLng(start.latitude, end.longitude),
+        end,
+        LatLng(end.latitude, start.longitude),
+        start,
+      ];
   void clearShapes() {
     polygons.clear();
     circles.clear();
@@ -703,6 +734,7 @@ class MapDrawingProvider with ChangeNotifier {
     isDrawing = false;
     notifyListeners();
   }
+
   void dispose() {
     mapController?.dispose();
     super.dispose();

@@ -1,7 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_google_maps_webservices/places.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../Constant/farmer_provider.dart';
@@ -14,8 +16,10 @@ class MapScreen extends StatefulWidget {
   @override
   _MapScreenState createState() => _MapScreenState();
 }
-GoogleMapController? mapController;
 
+GoogleMapController? mapController;
+final places =
+    GoogleMapsPlaces(apiKey: "AIzaSyBqEb5qH08mSFysEOfSTIfTezbhJjJZSRs");
 
 class _MapScreenState extends State<MapScreen> {
   @override
@@ -25,6 +29,54 @@ class _MapScreenState extends State<MapScreen> {
     // Location fetching is handled in provider.setMapController.
   }
 
+  final TextEditingController _controller = TextEditingController();
+  List<Prediction> _predictions = [];
+  bool _isLoading = false;
+
+  void _searchPlaces(String input) async {
+    if (input.isEmpty) {
+      setState(() => _predictions = []);
+      return;
+    }
+    setState(() => _isLoading = true);
+
+    // Call the autocomplete API
+    final response = await places.autocomplete(input);
+    if (response.isOkay) {
+      setState(() => _predictions = response.predictions);
+    } else {
+      // Optionally handle the error
+      debugPrint("Places Autocomplete error: ${response.errorMessage}");
+    }
+
+    setState(() => _isLoading = false);
+  }
+
+  Future<LatLng?> _getLatLngFromPlaceId(String placeId) async {
+    final detail = await places.getDetailsByPlaceId(placeId);
+    if (detail.isOkay) {
+      final location = detail.result.geometry?.location;
+      if (location != null) {
+        return LatLng(location.lat, location.lng);
+      }
+    }
+    return null;
+  }
+
+  void _onSuggestionTap(Prediction prediction) async {
+    final latLng = await _getLatLngFromPlaceId(prediction.placeId!);
+    if (latLng != null) {
+      // Animate camera to the searched location using provider function
+      Provider.of<MapDrawingProvider>(context, listen: false)
+          .animateCameraTo(latLng);
+      // Optionally update the search field and clear suggestions
+      setState(() {
+        _controller.text = prediction.description ?? "";
+        _predictions = [];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,75 +84,183 @@ class _MapScreenState extends State<MapScreen> {
       body: Column(
         children: [
           // Top Content: Farm Cards and Tool Buttons
+
           Column(
             children: [
+              Stack(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(15, 10, 15, 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        // Search Field inside a capsule-like container
+                        Consumer<MapDrawingProvider>(
+                          builder: (context, provider, _) {
+                            return Row(
+                              children: [
+                                _buildToolButton(
+                                  context,
+                                  icon: Icons.brush,
+                                  tool: "freehand",
+                                  currentTool: provider.currentTool,
+                                  onPressed: () =>
+                                      provider.setCurrentTool("freehand"),
+                                ),
+                                _buildToolButton(
+                                  context,
+                                  icon: Icons.crop_square,
+                                  tool: "rectangle",
+                                  currentTool: provider.currentTool,
+                                  onPressed: () =>
+                                      provider.setCurrentTool("rectangle"),
+                                ),
+                                _buildToolButton(
+                                  context,
+                                  icon: Icons.place,
+                                  tool: "marker",
+                                  currentTool: provider.currentTool,
+                                  onPressed: () =>
+                                      provider.setCurrentTool("marker"),
+                                ),
+                                _buildToolButton(
+                                  context,
+                                  icon: Icons.front_hand,
+                                  tool: "hand",
+                                  currentTool: provider.currentTool,
+                                  onPressed: () =>
+                                      provider.setCurrentTool("hand"),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(
+                            width:
+                                20), // Spacing between search field and tools
+
+                        Expanded(
+                          child: Container(
+                            height: 50, // Fixed height for better appearance
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius:
+                                  BorderRadius.circular(25), // Capsule shape
+                              border: Border.all(
+                                  color: Colors.brown,
+                                  width: 2), // Brown border
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.add_location_alt_rounded,
+                                    color: Colors
+                                        .brown), // Search icon with brown color
+                                Expanded(
+                                  child: TextField(
+                                    controller: _controller,
+                                    style: GoogleFonts.quicksand(
+                                        fontSize: 16,
+                                        fontWeight:
+                                            FontWeight.w600), // Font styling
+                                    decoration: const InputDecoration(
+                                      hintText: "Search location",
+                                      border: InputBorder
+                                          .none, // Remove default border
+                                      contentPadding:
+                                          EdgeInsets.symmetric(vertical: 10),
+                                    ),
+                                    onChanged: _searchPlaces,
+                                    onSubmitted: (value) async {
+                                      if (_predictions.isNotEmpty) {
+                                        _onSuggestionTap(_predictions.first);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(
+                            width:
+                                50), // Spacing between search field and tools
+
+                        // Tool selection buttons in a row
+                      ],
+                    ),
+                  ),
+// List of predictions below the row
+                  if (_predictions.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(290, 59, 140, 0),
+                      child: Container(
+                        height: 300,
+                        decoration: BoxDecoration(
+                          color: Colors.white, // Background color
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                          border: Border.all(
+                              color: Color(0xFF826407),
+                              width: 1.5), // Brown border
+                        ),
+                        child: Scrollbar(
+                          // Adds a scrollbar
+                          child: ListView.builder(
+                            padding: EdgeInsets.symmetric(vertical: 5),
+                            itemCount: _predictions.length,
+                            itemBuilder: (context, index) {
+                              final prediction = _predictions[index];
+                              return ListTile(
+                                title: Text(
+                                  prediction.description ?? "",
+                                  style: GoogleFonts.quicksand(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700),
+                                ),
+                                onTap: () => _onSuggestionTap(prediction),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
               Row(
                 children: [
-                  Container(
-                    child: Center(
-        //code for search field which will auto list the places as suer types in location and we will get that location latlng and assing to a variable name searched area if search button is pressed or enter is pressed we wil re animate camera to that searched lcoation
-                    ),
-                  ),
-                  Container(
-                    child: Consumer<MapDrawingProvider>(
-                      builder: (context, provider, _) {
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            _buildToolButton(
-                              context,
-                              icon: Icons.brush,
-                              tool: "freehand",
-                              currentTool: provider.currentTool,
-                              onPressed: () => provider.setCurrentTool("freehand"),
-                            ),
-                            _buildToolButton(
-                              context,
-                              icon: Icons.crop_square,
-                              tool: "rectangle",
-                              currentTool: provider.currentTool,
-                              onPressed: () => provider.setCurrentTool("rectangle"),
-                            ),
-                            _buildToolButton(
-                              context,
-                              icon: Icons.place,
-                              tool: "marker",
-                              currentTool: provider.currentTool,
-                              onPressed: () => provider.setCurrentTool("marker"),
-                            ),
-                            _buildToolButton(
-                              context,
-                              icon: Icons.front_hand,
-                              tool: "hand",
-                              currentTool: provider.currentTool,
-                              onPressed: () => provider.setCurrentTool("hand"),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Container(
-                      child: Consumer<MapDrawingProvider>(
-                        builder: (context, provider, _) {
-                          return Container(
-                            height: 130,
-                            child: provider.farms.isEmpty
-                                ? const Center(child: Text("No farms plotted yet"))
-                                : ListView.builder(
-                              addAutomaticKeepAlives: true,
-                              scrollDirection: Axis.horizontal,
-                              itemCount: provider.farms.length,
-                              itemBuilder: (ctx, i) => GestureDetector(
-                                onTap: () => provider.selectFarm(provider.farms[i]),
-                                child: FarmCard(farm: provider.farms[i]),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                    child: Consumer<MapDrawingProvider>(
+                      builder: (context, provider, _) {
+                        return SizedBox(
+                          height: 150,
+                          width: 250,
+                          child: provider.farms.isEmpty
+                              ? const Center(
+                                  child: Text("No farms plotted yet"))
+                              : ListView.builder(
+                                  addAutomaticKeepAlives: true,
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: provider.farms.length,
+                                  itemBuilder: (ctx, i) => GestureDetector(
+                                    onTap: () =>
+                                        provider.selectFarm(provider.farms[i]),
+                                    child: FarmCard(farm: provider.farms[i]),
+                                  ),
+                                ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -115,11 +275,13 @@ class _MapScreenState extends State<MapScreen> {
                 Positioned.fill(
                   child: GestureDetector(
                     onPanStart: (details) async {
-                      final provider =
-                      Provider.of<MapDrawingProvider>(context, listen: false);
-                      if (provider.toolSelected && provider.mapController != null) {
+                      final provider = Provider.of<MapDrawingProvider>(context,
+                          listen: false);
+                      if (provider.toolSelected &&
+                          provider.mapController != null) {
                         try {
-                          LatLng point = await provider.mapController!.getLatLng(
+                          LatLng point =
+                              await provider.mapController!.getLatLng(
                             ScreenCoordinate(
                               x: details.localPosition.dx.toInt(),
                               y: details.localPosition.dy.toInt(),
@@ -132,11 +294,13 @@ class _MapScreenState extends State<MapScreen> {
                       }
                     },
                     onPanUpdate: (details) async {
-                      final provider =
-                      Provider.of<MapDrawingProvider>(context, listen: false);
-                      if (provider.isDrawing && provider.mapController != null) {
+                      final provider = Provider.of<MapDrawingProvider>(context,
+                          listen: false);
+                      if (provider.isDrawing &&
+                          provider.mapController != null) {
                         try {
-                          LatLng point = await provider.mapController!.getLatLng(
+                          LatLng point =
+                              await provider.mapController!.getLatLng(
                             ScreenCoordinate(
                               x: details.localPosition.dx.toInt(),
                               y: details.localPosition.dy.toInt(),
@@ -149,8 +313,8 @@ class _MapScreenState extends State<MapScreen> {
                       }
                     },
                     onPanEnd: (details) {
-                      final provider =
-                      Provider.of<MapDrawingProvider>(context, listen: false);
+                      final provider = Provider.of<MapDrawingProvider>(context,
+                          listen: false);
                       if (provider.isDrawing) {
                         provider.finalizeDrawing(context);
                       }
@@ -165,10 +329,14 @@ class _MapScreenState extends State<MapScreen> {
                             target: provider.initialPoint,
                             zoom: 20,
                           ),
-                          scrollGesturesEnabled: provider.isMapInteractionAllowed(),
-                          rotateGesturesEnabled: provider.isMapInteractionAllowed(),
-                          tiltGesturesEnabled: provider.isMapInteractionAllowed(),
-                          zoomGesturesEnabled: provider.isMapInteractionAllowed(),
+                          scrollGesturesEnabled:
+                              provider.isMapInteractionAllowed(),
+                          rotateGesturesEnabled:
+                              provider.isMapInteractionAllowed(),
+                          tiltGesturesEnabled:
+                              provider.isMapInteractionAllowed(),
+                          zoomGesturesEnabled:
+                              provider.isMapInteractionAllowed(),
                           myLocationButtonEnabled: true,
                           myLocationEnabled: true,
                           compassEnabled: true,
@@ -180,7 +348,8 @@ class _MapScreenState extends State<MapScreen> {
                           mapType: provider.mapType,
                           onTap: (latLng) {
                             if (provider.currentTool == "marker") {
-                              provider.addMarkerAndUpdatePolyline(context, latLng);
+                              provider.addMarkerAndUpdatePolyline(
+                                  context, latLng);
                             }
                           },
                         );
@@ -193,7 +362,8 @@ class _MapScreenState extends State<MapScreen> {
                   left: 5,
                   child: FloatingActionButton(
                     mini: true,
-                    child: const Icon(Icons.layers, size: 30, color: Color(0xFF826407)),
+                    child: const Icon(Icons.layers,
+                        size: 30, color: Color(0xFF826407)),
                     onPressed: () => _showMapTypeSelector(context),
                   ),
                 ),
@@ -209,7 +379,8 @@ class _MapScreenState extends State<MapScreen> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border(left: BorderSide(color: Colors.grey[300]!)),
+                          border: Border(
+                              left: BorderSide(color: Colors.grey[300]!)),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
@@ -221,10 +392,10 @@ class _MapScreenState extends State<MapScreen> {
                         child: provider.selectedFarm == null
                             ? const SizedBox()
                             : FarmDetailsPanel(
-                          farm: provider.selectedFarm!,
-                          onNameChanged: provider.updateFarmName,
-                          onClose: provider.closeFarmDetails,
-                        ),
+                                farm: provider.selectedFarm!,
+                                onNameChanged: provider.updateFarmName,
+                                onClose: provider.closeFarmDetails,
+                              ),
                       ),
                     );
                   },
@@ -250,7 +421,9 @@ class _MapScreenState extends State<MapScreen> {
                   leading: Icon(
                     provider.mapType == mapType ? Icons.check : Icons.map,
                     size: 20,
-                    color: provider.mapType == mapType ? const Color(0xFF826407) : null,
+                    color: provider.mapType == mapType
+                        ? const Color(0xFF826407)
+                        : null,
                   ),
                   title: Text(
                     mapType.toString().split('.').last.toUpperCase(),
@@ -269,15 +442,15 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildToolButton(
-      BuildContext context, {
-        required IconData icon,
-        required String tool,
-        required String currentTool,
-        required VoidCallback onPressed,
-      }) {
+    BuildContext context, {
+    required IconData icon,
+    required String tool,
+    required String currentTool,
+    required VoidCallback onPressed,
+  }) {
     final isActive = currentTool == tool;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 5.0),
       child: FloatingActionButton(
         heroTag: tool,
         onPressed: onPressed,
@@ -310,7 +483,7 @@ class FarmDetailsPanel extends StatefulWidget {
 }
 
 class _FarmDetailsPanelState extends State<FarmDetailsPanel> {
-  String _selectedAreaUnit = 'm²';
+  String _selectedAreaUnit = 'ha';
   late TextEditingController _nameController;
 
   @override
@@ -333,12 +506,16 @@ class _FarmDetailsPanelState extends State<FarmDetailsPanel> {
         Align(
           alignment: Alignment.topRight,
           child: IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: widget.onClose),
+            icon: const Icon(Icons.close),
+            onPressed: widget.onClose,
+          ),
         ),
-        const Text(
+        Text(
           "Farm Details",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: GoogleFonts.quicksand(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         const SizedBox(height: 10),
         TextField(
@@ -347,31 +524,57 @@ class _FarmDetailsPanelState extends State<FarmDetailsPanel> {
           onChanged: widget.onNameChanged,
         ),
         const SizedBox(height: 10),
-        Text("ID: ${widget.farm.id}",
-            style: const TextStyle(color: Colors.grey)),
+        Text(
+          "ID: ${widget.farm.id}",
+          style: GoogleFonts.quicksand(color: Colors.grey),
+        ),
         const SizedBox(height: 5),
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               "Area: ${_formatArea(widget.farm.area, _selectedAreaUnit)}",
-              style: const TextStyle(color: Color(0xFF826407)),
+              style: GoogleFonts.quicksand(
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                color: const Color(0xFF39890A),
+              ),
             ),
-            const SizedBox(width: 10),
-            DropdownButton<String>(
-              value: _selectedAreaUnit,
-              items: <String>['m²', 'ha', 'Acres']
-                  .map((String value) => DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              ))
-                  .toList(),
-              onChanged: (newUnit) {
-                if (newUnit != null) {
-                  setState(() {
-                    _selectedAreaUnit = newUnit;
-                  });
-                }
-              },
+            const SizedBox(width: 5),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.green, width: 1.5),
+                borderRadius: BorderRadius.circular(6), // Rectangular box
+              ),
+              child: DropdownButton<String>(
+                value: _selectedAreaUnit,
+                underline: const SizedBox(), // Remove default underline
+                style: GoogleFonts.quicksand(
+                    fontSize: 14,
+                    color: Colors.green,
+                    fontWeight: FontWeight.w800),
+                dropdownColor:
+                    Colors.white, // White background for dropdown list
+                isDense: true, // Reduces height spacing
+                items: <String>['ha', 'ac']
+                    .map((String value) => DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            value,
+                            style: GoogleFonts.quicksand(fontSize: 14),
+                          ),
+                        ))
+                    .toList(),
+                onChanged: (newUnit) {
+                  if (newUnit != null) {
+                    setState(() {
+                      _selectedAreaUnit = newUnit;
+                    });
+                  }
+                },
+              ),
             ),
           ],
         ),
@@ -393,70 +596,108 @@ class FarmCard extends StatefulWidget {
 }
 
 class _FarmCardState extends State<FarmCard> {
-  String _selectedAreaUnit = 'm²';
+  String _selectedAreaUnit = 'ha';
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 150,
-      height: 450,
-      margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            widget.farm.name,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            widget.farm.id,
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
-          ),
-          const Spacer(),
-          Row(
-            children: [
-              Text(
-                "Area: ${_formatArea(widget.farm.area, _selectedAreaUnit)}",
-                style: const TextStyle(color: Color(0xFF826407)),
-              ),
-              const SizedBox(width: 10),
-              DropdownButton<String>(
-                value: _selectedAreaUnit,
-                items: <String>['m²', 'ha', 'Acres']
-                    .map((String value) => DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                ))
-                    .toList(),
-                onChanged: (newUnit) {
-                  if (newUnit != null) {
-                    setState(() {
-                      _selectedAreaUnit = newUnit;
-                    });
-                  }
-                },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double containerHeight =
+            constraints.maxHeight * 0.6; // Responsive height
+
+        return Container(
+          width: 200,
+          height: containerHeight, // Now responsive
+          margin: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 5,
               ),
             ],
           ),
-        ],
-      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.farm.name,
+                style: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.farm.id,
+                style: GoogleFonts.quicksand(
+                    fontSize: 10,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w800),
+              ),
+              Divider(),
+              SizedBox(
+                height: 5,
+              ),
+              Row(
+                children: [
+                  Text(
+                    "Area: ${_formatArea(widget.farm.area, _selectedAreaUnit).split(' ').first}",
+                    style: GoogleFonts.quicksand(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFA28119), // Brown color
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.brown, width: 1.5),
+                      borderRadius: BorderRadius.circular(6), // Rectangular box
+                    ),
+                    child: DropdownButton<String>(
+                      value: _selectedAreaUnit,
+                      elevation: 4,
+                      enableFeedback: true,
+                      underline: const SizedBox(), // Remove default underline
+                      style: GoogleFonts.quicksand(
+                          fontSize: 14,
+                          color: Colors.brown,
+                          fontWeight: FontWeight.w800),
+                      dropdownColor:
+                          Colors.white, // White background for dropdown list
+                      isDense: true, // Reduces height spacing
+                      items: <String>['ha', 'ac']
+                          .map((String value) => DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(
+                                  value,
+                                  style: GoogleFonts.quicksand(fontSize: 14),
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (newUnit) {
+                        if (newUnit != null) {
+                          setState(() {
+                            _selectedAreaUnit = newUnit;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -469,13 +710,8 @@ String _formatArea(double area, String unit) {
     case 'ha':
       final converted = area / 10000;
       return '${converted.toStringAsFixed(2)} ha';
-    case 'Acres':
+    default: // ac
       final converted = area * 0.000247105;
-      return '${converted.toStringAsFixed(2)} Acres';
-    default: // m²
-      return '${area.toStringAsFixed(2)} m²';
+      return '${converted.toStringAsFixed(2)} ac';
   }
-
 }
-
-
