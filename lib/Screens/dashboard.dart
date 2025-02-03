@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_google_maps_webservices/places.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../Constant/farmer_provider.dart';
 import '../farm_model.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'dart:html' as html; // Only for Flutter web.
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -95,6 +96,7 @@ class _MapScreenState extends State<MapScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         // Search Field inside a capsule-like container
+
                         Consumer<MapDrawingProvider>(
                           builder: (context, provider, _) {
                             return Row(
@@ -104,41 +106,49 @@ class _MapScreenState extends State<MapScreen> {
                                   icon: Icons.brush,
                                   tool: "freehand",
                                   currentTool: provider.currentTool,
-                                  onPressed: () =>
-                                      provider.setCurrentTool("freehand"),
+                                  onPressed: () {
+                                    provider.setCurrentTool("freehand");
+                                    updateCursor("freehand");
+                                  },
                                 ),
                                 _buildToolButton(
                                   context,
                                   icon: Icons.crop_square,
                                   tool: "rectangle",
                                   currentTool: provider.currentTool,
-                                  onPressed: () =>
-                                      provider.setCurrentTool("rectangle"),
+                                  onPressed: () {
+                                    provider.setCurrentTool("rectangle");
+                                    updateCursor("rectangle");
+                                  },
                                 ),
                                 _buildToolButton(
                                   context,
                                   icon: Icons.place,
                                   tool: "marker",
                                   currentTool: provider.currentTool,
-                                  onPressed: () =>
-                                      provider.setCurrentTool("marker"),
+                                  onPressed: () {
+                                    provider.setCurrentTool("marker");
+                                    updateCursor("marker");
+                                  },
                                 ),
                                 _buildToolButton(
                                   context,
                                   icon: Icons.front_hand,
                                   tool: "hand",
                                   currentTool: provider.currentTool,
-                                  onPressed: () =>
-                                      provider.setCurrentTool("hand"),
+                                  onPressed: () {
+                                    provider.setCurrentTool("hand");
+                                    updateCursor("hand");
+                                  },
                                 ),
                               ],
                             );
+
                           },
                         ),
-                        const SizedBox(
-                            width:
-                                20), // Spacing between search field and tools
 
+
+                        const SizedBox(width: 20), // Spacing between search field and tools
                         Expanded(
                           child: Container(
                             height: 50, // Fixed height for better appearance
@@ -189,16 +199,10 @@ class _MapScreenState extends State<MapScreen> {
                             ),
                           ),
                         ),
-
-                        const SizedBox(
-                            width:
-                                50), // Spacing between search field and tools
-
-                        // Tool selection buttons in a row
+                        const SizedBox(width: 50),
                       ],
                     ),
                   ),
-// List of predictions below the row
                   if (_predictions.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(290, 59, 140, 0),
@@ -360,12 +364,24 @@ class _MapScreenState extends State<MapScreen> {
                 Positioned(
                   bottom: 30,
                   left: 5,
-                  child: FloatingActionButton(
-                    mini: true,
-                    child: const Icon(Icons.layers,
-                        size: 30, color: Color(0xFF826407)),
-                    onPressed: () => _showMapTypeSelector(context),
+                 child:  GestureDetector(
+                    onTap: () => _showMapTypeSelector(context),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+
+                      child: Center(
+
+                        child: SvgPicture.asset(
+                          'images/layers.svg', // Ensure correct path
+                          width: 50,
+                          height: 50,
+                        ),
+                      ),
+                    ),
                   ),
+
+
                 ),
                 // Right-side Animated Panel
                 Consumer<MapDrawingProvider>(
@@ -374,21 +390,8 @@ class _MapScreenState extends State<MapScreen> {
                       top: 10,
                       bottom: 10,
                       right: provider.isFarmDetailsVisible ? 0 : -250,
-                      child: Container(
+                      child: SizedBox(
                         width: 250,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border(
-                              left: BorderSide(color: Colors.grey[300]!)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 5,
-                              spreadRadius: 2,
-                            ),
-                          ],
-                        ),
                         child: provider.selectedFarm == null
                             ? const SizedBox()
                             : FarmDetailsPanel(
@@ -461,7 +464,28 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
   }
+
+  void updateCursor(String tool) {
+    if (tool == "hand") {
+      html.document.documentElement!.style.cursor = 'auto';
+    } else {
+      // For freehand, rectangle, and marker use the custom image.
+      html.document.documentElement!.style.cursor =
+      'url(images/aim.png), auto';
+    }
+  }
+
 }
+
+
+
+
+
+
+
+
+
+
 
 // ----------------------
 // FarmDetailsPanel Widget
@@ -481,7 +505,6 @@ class FarmDetailsPanel extends StatefulWidget {
   @override
   _FarmDetailsPanelState createState() => _FarmDetailsPanelState();
 }
-
 class _FarmDetailsPanelState extends State<FarmDetailsPanel> {
   String _selectedAreaUnit = 'ha';
   late TextEditingController _nameController;
@@ -500,89 +523,179 @@ class _FarmDetailsPanelState extends State<FarmDetailsPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Align(
-          alignment: Alignment.topRight,
-          child: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: widget.onClose,
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          bottomLeft: Radius.circular(20),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4,
+            offset: Offset(0, 2),
           ),
-        ),
-        Text(
-          "Farm Details",
-          style: GoogleFonts.quicksand(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _nameController,
-          decoration: const InputDecoration(labelText: "Farm Name"),
-          onChanged: widget.onNameChanged,
-        ),
-        const SizedBox(height: 10),
-        Text(
-          "ID: ${widget.farm.id}",
-          style: GoogleFonts.quicksand(color: Colors.grey),
-        ),
-        const SizedBox(height: 5),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Area: ${_formatArea(widget.farm.area, _selectedAreaUnit)}",
-              style: GoogleFonts.quicksand(
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-                color: const Color(0xFF39890A),
-              ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Align(
+            alignment: Alignment.topRight,
+            child: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: widget.onClose,
             ),
-            const SizedBox(width: 5),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.green, width: 1.5),
-                borderRadius: BorderRadius.circular(6), // Rectangular box
-              ),
-              child: DropdownButton<String>(
-                value: _selectedAreaUnit,
-                underline: const SizedBox(), // Remove default underline
+          ),
+          Text(
+            "Farm Details",
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(labelText: "Farm Name"),
+            onChanged: widget.onNameChanged,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "ID: ${widget.farm.id}",
+            style: GoogleFonts.quicksand(color: Colors.grey),
+          ),
+          const SizedBox(height: 5),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Area: ${_formatArea(widget.farm.area, _selectedAreaUnit).split(' ').first}",
                 style: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  color: const Color(0xFF39890A),
+                ),
+              ),
+              const SizedBox(width: 5),
+              Container(
+                width: 100,
+                child: DropdownButtonFormField<String>(
+
+                  value: _selectedAreaUnit,
+                  decoration: InputDecoration(
+
+                    contentPadding: const EdgeInsets.fromLTRB(10,10,0,10),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.green, width: 1.5),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.green, width: 2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    filled: true,
+                    isDense: true,
+                    isCollapsed: true,
+                    fillColor: Colors.white,
+                  ),
+                  style: GoogleFonts.quicksand(
                     fontSize: 14,
                     color: Colors.green,
-                    fontWeight: FontWeight.w800),
-                dropdownColor:
-                    Colors.white, // White background for dropdown list
-                isDense: true, // Reduces height spacing
-                items: <String>['ha', 'ac']
-                    .map((String value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(
-                            value,
-                            style: GoogleFonts.quicksand(fontSize: 14),
-                          ),
-                        ))
-                    .toList(),
-                onChanged: (newUnit) {
-                  if (newUnit != null) {
-                    setState(() {
-                      _selectedAreaUnit = newUnit;
-                    });
-                  }
-                },
+                    fontWeight: FontWeight.w800,
+                  ),
+                  isDense: true,
+                  items: <String>['ha', 'ac']
+                      .map((String value) => DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: GoogleFonts.quicksand(fontSize: 16,fontWeight: FontWeight.w700),
+                    ),
+                  ))
+                      .toList(),
+                  onChanged: (newUnit) {
+                    if (newUnit != null) {
+                      setState(() {
+                        _selectedAreaUnit = newUnit;
+                      });
+                    }
+                  },
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          // ADD TASK Header with icon and effects
+          InkWell(
+            onTap: () {
+              // Implement add task action here if needed.
+            },
+            borderRadius: BorderRadius.circular(8),
+            splashColor: Colors.blue.withOpacity(0.2),
+            child: Row(
+              children: [
+                Icon(Icons.add, color: Colors.blue),
+                const SizedBox(width: 8),
+                Text(
+                  "Add Task",
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    color: Colors.blue,
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ],
+          ),
+          const SizedBox(height: 10),
+          // Dummy task list container
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                )
+              ],
+            ),
+            child: ListView(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.task_alt, color: Colors.green),
+                  title: Text(
+                    "Dummy Task 1",
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(Icons.task_alt, color: Colors.green),
+                  title: Text(
+                    "Dummy Task 2",
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(Icons.task_alt, color: Colors.green),
+                  title: Text(
+                    "Dummy Task 3",
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
-
 // ----------------------
 // FarmCard Widget
 // ----------------------
@@ -594,7 +707,6 @@ class FarmCard extends StatefulWidget {
   @override
   _FarmCardState createState() => _FarmCardState();
 }
-
 class _FarmCardState extends State<FarmCard> {
   String _selectedAreaUnit = 'ha';
 
@@ -701,7 +813,6 @@ class _FarmCardState extends State<FarmCard> {
     );
   }
 }
-
 // ----------------------
 // Format Area Function
 // ----------------------

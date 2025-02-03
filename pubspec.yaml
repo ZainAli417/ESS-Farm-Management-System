@@ -25,7 +25,7 @@ dependencies:
   liquid_progress_indicator_v2: ^0.5.0
   flutter_screenutil: ^5.0.0
   screenshot: ^3.0.0
-  image: ^3.0.0
+  image: ^4.5.2
   latlong2: ^0.9.1
   geocoding: ^3.0.0
   flutter_typeahead: ^5.2.0
@@ -38,9 +38,9 @@ dependencies:
   flutter_open_street_map: ^0.0.4
   sleek_circular_slider: ^2.0.1
   toggle_switch: ^2.1.0
-  syncfusion_flutter_gauges: ^24.1.45
-  flutter_joystick: ^0.0.4
-  location: ^6.0.2
+  syncfusion_flutter_gauges: ^28.2.3
+  flutter_joystick: ^0.2.1
+  location: ^8.0.0
   xml: ^6.1.0
   flutter_asset_manager: ^0.0.2
   google_fonts: any
@@ -50,7 +50,7 @@ dependencies:
   path: ^1.9.0
   flutter_marquee: ^2.0.1
   flutter_polyline_points: ^2.1.0
-  dio: 4.0.0
+  dio: ^5.8.0+1
   flutter_google_maps_webservices: ^1.1.1
   googlemaps_flutter_webservices: ^1.0.2
   flutter_inappwebview: ^6.1.5
@@ -68,7 +68,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
