@@ -381,7 +381,6 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                   ),
 
-
                 ),
                 // Right-side Animated Panel
                 Consumer<MapDrawingProvider>(
