@@ -23,6 +23,7 @@ class MapDrawingProvider with ChangeNotifier {
   final TextEditingController farmNameController = TextEditingController();
   LatLng initialPoint = const LatLng(37.7749, -122.4194);
   // Drawing state
+  bool isLoading = false; // Track loading state
   LatLng? currentDragPoint;
   List<Polygon> polygons = [];
   List<Circle> circles = [];
@@ -105,7 +106,8 @@ class MapDrawingProvider with ChangeNotifier {
 
     return lines;
   }
-
+  String _selectedAreaUnit = 'ha';
+  String get selectedAreaUnit => _selectedAreaUnit;
   Set<Circle> get allCircles => {
         ...circles,
         if (isDrawing &&
@@ -122,21 +124,19 @@ class MapDrawingProvider with ChangeNotifier {
       };
   List<Polyline> _tempPolylines = []; // Temporary polylines for current drawing
   bool isFarmDetailsVisible = false;
-  MapType _mapType = MapType.normal;
+  MapType _mapType = MapType.satellite;
   MapType get mapType => _mapType;
   final List<MapType> mapTypes = [
     MapType.normal,
     MapType.satellite,
     MapType.hybrid
   ];
-
   void setMapController(GoogleMapController controller) {
     mapController = controller;
     controller.setMapStyle(poistyle);
     loadFarms();
     getCurrentLocation();
   }
-
   static const String poistyle = '''
 [
   {
@@ -148,8 +148,10 @@ class MapDrawingProvider with ChangeNotifier {
   }
 ]
 ''';
-
   Future<void> getCurrentLocation() async {
+    isLoading = true;
+    notifyListeners();
+
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -157,6 +159,8 @@ class MapDrawingProvider with ChangeNotifier {
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       debugPrint("Location services are disabled.");
+      isLoading = false;
+      notifyListeners();
       return;
     }
 
@@ -166,6 +170,8 @@ class MapDrawingProvider with ChangeNotifier {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.deniedForever) {
         debugPrint("Location permissions are permanently denied.");
+        isLoading = false;
+        notifyListeners();
         return;
       }
     }
@@ -177,15 +183,15 @@ class MapDrawingProvider with ChangeNotifier {
 
     // Update the initial point.
     initialPoint = LatLng(position.latitude, position.longitude);
-    notifyListeners();
 
-    // Optionally, wait for 2 seconds before animating.
-    await Future.delayed(const Duration(seconds: 2));
+    // Wait for 2 seconds before animating.
+    await Future.delayed(const Duration(seconds: 5));
     animateCameraTo(initialPoint);
-    // Animate the camera to the new position.
-  }
 
-  // Add this method inside your MapDrawingProvider class:
+    // Hide loading screen
+    isLoading = false;
+    notifyListeners();
+  }
   void animateCameraTo(LatLng latLng) {
     if (mapController != null) {
       mapController!.animateCamera(
@@ -195,12 +201,10 @@ class MapDrawingProvider with ChangeNotifier {
       );
     }
   }
-
   void setMapType(MapType newMapType) {
     _mapType = newMapType;
     notifyListeners();
   }
-
   Future<void> _showFarmDetailsDialog(BuildContext context) async {
     final area = _calculatePolygonArea(currentPolygonPoints);
 
@@ -275,7 +279,6 @@ class MapDrawingProvider with ChangeNotifier {
 
     _resetToolSelection();
   }
-
   void addMarkerAndUpdatePolyline(BuildContext context, LatLng point) {
     if (currentTool != "marker") return;
 
@@ -324,7 +327,6 @@ class MapDrawingProvider with ChangeNotifier {
     currentDragPoint = null;
     notifyListeners();
   }
-
   void _closeAndFillPolygon(BuildContext context) {
     // Create a closed polygon by adding the first point at the end.
     List<LatLng> closedPolygon = List.from(currentPolylinePoints)
@@ -359,7 +361,6 @@ class MapDrawingProvider with ChangeNotifier {
     currentDragPoint = null;
     notifyListeners();
   }
-
   void clearCurrentFarm() {
     currentPolygonPoints.clear();
     currentPolylinePoints.clear();
@@ -373,7 +374,6 @@ class MapDrawingProvider with ChangeNotifier {
     isDrawing = false;
     notifyListeners();
   }
-
   void _updatePolylines() {
     // Remove any existing temporary marker-drawing polyline(s)
     _tempPolylines.removeWhere(
@@ -413,14 +413,7 @@ class MapDrawingProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // ******************************************************************
-  // Modified Marker Drawing Logic: Now requires a BuildContext so that
-  // when a closed polygon is formed, the dialog box is displayed.
-  // ******************************************************************
 
-  // ******************************************************************
-  // End of Marker Drawing modifications.
-  // ******************************************************************
 
   void finalizePolylineAndCreateFarm() {
     if (currentPolylinePoints.length < 3) return;
@@ -460,190 +453,10 @@ class MapDrawingProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  double _calculatePolygonArea(List<LatLng> points) {
-    if (points.length < 3) return 0.0;
-    final turfPolygon = turf.Polygon(
-      coordinates: [
-        points.map((p) => turf.Position(p.longitude, p.latitude)).toList()
-      ],
-    );
-    return (turf.area(turfPolygon) ?? 0.0).toDouble();
-  }
-
-  String _selectedAreaUnit = 'ha';
-  String get selectedAreaUnit => _selectedAreaUnit;
-
-  // New method to update the area unit
-  void updateSelectedAreaUnit(String? newUnit) {
-    if (newUnit == null || newUnit == _selectedAreaUnit) return;
-    _selectedAreaUnit = newUnit;
-    notifyListeners();
-  }
-
-  // Modified _formatArea function
-  String _formatArea(double area, String unit) {
-    switch (unit) {
-      case 'ha':
-        final converted = area / 10000;
-        return '${converted.toStringAsFixed(2)} ha';
-
-      default: // 'acres²'
-        final converted = area * 0.000247105;
-        return '${converted.toStringAsFixed(2)} Acres';
-    }
-  }
-
-  void setCurrentTool(String tool) {
-    if (tool == "hand") {
-      isDrawing = false;
-      _toolSelected = false;
-      currentTool = "hand";
-    } else {
-      currentTool = tool;
-      _toolSelected = true;
-    }
-    notifyListeners();
-  }
-
-  void startDrawing(String tool, LatLng point) {
-    isDrawing = true;
-    currentTool = tool;
-    initialPointForDrawing = point;
-    currentPolygonPoints.clear();
-    if (tool == "marker") polylinePoints.clear();
-    notifyListeners();
-  }
-
-  void updateDrawing(LatLng point) {
-    currentDragPoint = point;
-    switch (currentTool) {
-      case "circle":
-        circleRadius =
-            _calculateDistance(initialPointForDrawing!, currentDragPoint!);
-        break;
-      case "rectangle":
-        currentPolygonPoints =
-            _getRectanglePoints(initialPointForDrawing!, currentDragPoint!);
-        break;
-      case "freehand":
-        currentPolygonPoints.add(point);
-        break;
-      case "marker":
-        if (polylinePoints.isNotEmpty) polylinePoints.add(point);
-        break;
-    }
-    notifyListeners();
-  }
-
-  void finalizeDrawing(BuildContext context) {
-    if ((currentTool == "rectangle" ||
-            currentTool == "freehand" ||
-            currentTool == "marker") &&
-        currentPolygonPoints.isNotEmpty) {
-      _tempPolygons.add(
-        Polygon(
-          polygonId: PolygonId(DateTime.now().toString()),
-          points: List.from(currentPolygonPoints),
-          fillColor: Colors.redAccent.withOpacity(0.4),
-          strokeColor: Colors.red,
-          strokeWidth: 3,
-        ),
-      );
-
-      _showFarmDetailsDialog(context);
-    } else {
-      currentPolygonPoints.clear();
-      isDrawing = false;
-    }
-    notifyListeners();
-  }
-
-  void _resetToolSelection() {
-    currentTool = "";
-    _toolSelected = false;
-    notifyListeners();
-  }
-
-  void loadFarms() {
-    FarmPlot.loadFarms().listen((loadedFarms) {
-      if (loadedFarms.isNotEmpty) {
-        farms.addAll(loadedFarms);
-      }
-
-      polygons.clear();
-      for (var farm in farms) {
-        polygons.add(
-          Polygon(
-            polygonId: PolygonId(farm.id),
-            points: farm.coordinates,
-            fillColor: Colors.green.withOpacity(0.3),
-            strokeColor: Colors.green,
-            strokeWidth: 2,
-            consumeTapEvents: true,
-            onTap: () => selectFarm(farm),
-          ),
-        );
-      }
-
-      notifyListeners();
-    });
-  }
-
-  void selectFarm(FarmPlot farm) {
-    selectedFarm = farm;
-    farmNameController.text = farm.name;
-    isFarmDetailsVisible = true;
-
-    if (mapController != null) {
-      mapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(
-              farm.coordinates.map((c) => c.latitude).reduce(min),
-              farm.coordinates.map((c) => c.longitude).reduce(min),
-            ),
-            northeast: LatLng(
-              farm.coordinates.map((c) => c.latitude).reduce(max),
-              farm.coordinates.map((c) => c.longitude).reduce(max),
-            ),
-          ),
-          100,
-        ),
-      );
-    }
-
-    notifyListeners();
-  }
-
-  void closeFarmDetails() {
-    isFarmDetailsVisible = false;
-    notifyListeners();
-    Future.delayed(const Duration(milliseconds: 500), () {
-      selectedFarm = null;
-      notifyListeners();
-    });
-  }
-
-  Future<void> updateFarmName(String newName) async {
-    if (selectedFarm == null) return;
-
-    selectedFarm!.name = newName;
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser?.uid)
-        .collection('farms')
-        .doc(selectedFarm!.id)
-        .update({'name': newName});
-
-    notifyListeners();
-  }
-
-  Future<void> _saveFarmPlot(
-      BuildContext context, String id, double area) async {
+  Future<void> _saveFarmPlot(BuildContext context, String id, double area) async {
     if (currentPolygonPoints.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("Error: No coordinates found for the farm!")),
+        const SnackBar(content: Text("Error: No coordinates found for the farm!")),
       );
       return;
     }
@@ -680,6 +493,174 @@ class MapDrawingProvider with ChangeNotifier {
     }
   }
 
+  void loadFarms() {
+    FarmPlot.loadFarms().listen((loadedFarms) {
+      if (loadedFarms.isNotEmpty) {
+        farms.addAll(loadedFarms);
+      }
+
+      polygons.clear();
+      for (var farm in farms) {
+        polygons.add(
+          Polygon(
+            polygonId: PolygonId(farm.id),
+            points: farm.coordinates,
+            fillColor: Colors.green.withOpacity(0.3),
+            strokeColor: Colors.green,
+            strokeWidth: 2,
+            consumeTapEvents: true,
+            onTap: () => selectFarm(farm),
+          ),
+        );
+      }
+
+      notifyListeners();
+    });
+  }
+
+
+
+
+
+  double _calculatePolygonArea(List<LatLng> points) {
+    if (points.length < 3) return 0.0;
+    final turfPolygon = turf.Polygon(
+      coordinates: [
+        points.map((p) => turf.Position(p.longitude, p.latitude)).toList()
+      ],
+    );
+    return (turf.area(turfPolygon) ?? 0.0).toDouble();
+  }
+  // New method to update the area unit
+  void updateSelectedAreaUnit(String? newUnit) {
+    if (newUnit == null || newUnit == _selectedAreaUnit) return;
+    _selectedAreaUnit = newUnit;
+    notifyListeners();
+  }
+  // Modified _formatArea function
+  String _formatArea(double area, String unit) {
+    switch (unit) {
+      case 'ha':
+        final converted = area / 10000;
+        return '${converted.toStringAsFixed(2)} ha';
+
+      default: // 'acres²'
+        final converted = area * 0.000247105;
+        return '${converted.toStringAsFixed(2)} Acres';
+    }
+  }
+  void setCurrentTool(String tool) {
+    if (tool == "hand") {
+      isDrawing = false;
+      _toolSelected = false;
+      currentTool = "hand";
+    } else {
+      currentTool = tool;
+      _toolSelected = true;
+    }
+    notifyListeners();
+  }
+  void startDrawing(String tool, LatLng point) {
+    isDrawing = true;
+    currentTool = tool;
+    initialPointForDrawing = point;
+    currentPolygonPoints.clear();
+    if (tool == "marker") polylinePoints.clear();
+    notifyListeners();
+  }
+  void updateDrawing(LatLng point) {
+    currentDragPoint = point;
+    switch (currentTool) {
+      case "circle":
+        circleRadius =
+            _calculateDistance(initialPointForDrawing!, currentDragPoint!);
+        break;
+      case "rectangle":
+        currentPolygonPoints =
+            _getRectanglePoints(initialPointForDrawing!, currentDragPoint!);
+        break;
+      case "freehand":
+        currentPolygonPoints.add(point);
+        break;
+      case "marker":
+        if (polylinePoints.isNotEmpty) polylinePoints.add(point);
+        break;
+    }
+    notifyListeners();
+  }
+  void finalizeDrawing(BuildContext context) {
+    if ((currentTool == "rectangle" ||
+            currentTool == "freehand" ||
+            currentTool == "marker") &&
+        currentPolygonPoints.isNotEmpty) {
+      _tempPolygons.add(
+        Polygon(
+          polygonId: PolygonId(DateTime.now().toString()),
+          points: List.from(currentPolygonPoints),
+          fillColor: Colors.redAccent.withOpacity(0.4),
+          strokeColor: Colors.red,
+          strokeWidth: 3,
+        ),
+      );
+
+      _showFarmDetailsDialog(context);
+    } else {
+      currentPolygonPoints.clear();
+      isDrawing = false;
+    }
+    notifyListeners();
+  }
+  void _resetToolSelection() {
+    currentTool = "";
+    _toolSelected = false;
+    notifyListeners();
+  }
+  void selectFarm(FarmPlot farm) {
+    selectedFarm = farm;
+    farmNameController.text = farm.name;
+    isFarmDetailsVisible = true;
+
+    if (mapController != null) {
+      mapController!.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(
+              farm.coordinates.map((c) => c.latitude).reduce(min),
+              farm.coordinates.map((c) => c.longitude).reduce(min),
+            ),
+            northeast: LatLng(
+              farm.coordinates.map((c) => c.latitude).reduce(max),
+              farm.coordinates.map((c) => c.longitude).reduce(max),
+            ),
+          ),
+          100,
+        ),
+      );
+    }
+
+    notifyListeners();
+  }
+  void closeFarmDetails() {
+    isFarmDetailsVisible = false;
+    notifyListeners();
+    Future.delayed(const Duration(milliseconds: 500), () {
+      selectedFarm = null;
+      notifyListeners();
+    });
+  }
+  Future<void> updateFarmName(String newName) async {
+    if (selectedFarm == null) return;
+
+    selectedFarm!.name = newName;
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .collection('farms')
+        .doc(selectedFarm!.id)
+        .update({'name': newName});
+
+    notifyListeners();
+  }
   bool isMapInteractionAllowed() => !isFarmSelected && !_toolSelected;
   void placeMarker(LatLng point) {
     if (currentTool == "marker") {
@@ -704,7 +685,6 @@ class MapDrawingProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
   double _calculateDistance(LatLng p1, LatLng p2) {
     const radius = 6371e3;
     final dLat = _toRadians(p2.latitude - p1.latitude);
@@ -716,7 +696,6 @@ class MapDrawingProvider with ChangeNotifier {
             sin(dLng / 2);
     return radius * 2 * atan2(sqrt(a), sqrt(1 - a));
   }
-
   double _toRadians(double degree) => degree * pi / 180;
   List<LatLng> _getRectanglePoints(LatLng start, LatLng end) => [
         start,
@@ -734,7 +713,6 @@ class MapDrawingProvider with ChangeNotifier {
     isDrawing = false;
     notifyListeners();
   }
-
   void dispose() {
     mapController?.dispose();
     super.dispose();
