@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:video_player/video_player.dart';
 import '../Constant/controller_weather.dart';
+import 'Task Management.dart';
 import 'dashboard.dart';
 
 class DrawerNavbar extends StatefulWidget {
@@ -20,7 +21,7 @@ class _DrawerNavbarState extends State<DrawerNavbar> with TickerProviderStateMix
   late VideoPlayerController _controller;
   final List<Widget> _children = [
     const MapScreen(),
-    const Center(child: Text("Inventory Screen")),
+    TaskScreen(),
     const Center(child: Text("Farm Insights Screen")),
     const Center(child: Text("Account Settings Screen")),
     const Center(child: Text("Notifications Screen")),

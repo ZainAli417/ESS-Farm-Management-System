@@ -9,6 +9,12 @@ class FarmPlot {
   final List<LatLng> coordinates;
   final DateTime createdAt;
   final String geoHash;
+  // New fields
+  final DateTime sowingDate;
+  final String fertilityLevel;
+  final String soilType;
+  final bool pesticideUsage;
+  final int seedsPerHectare;
 
   FarmPlot({
     required this.id,
@@ -17,6 +23,11 @@ class FarmPlot {
     required this.coordinates,
     required this.createdAt,
     required this.geoHash,
+    required this.sowingDate,
+    required this.fertilityLevel,
+    required this.soilType,
+    required this.pesticideUsage,
+    required this.seedsPerHectare,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,35 +40,47 @@ class FarmPlot {
           .toList(),
       'createdAt': createdAt.millisecondsSinceEpoch,
       'geoHash': geoHash,
+      'sowingDate': sowingDate.millisecondsSinceEpoch,
+      'fertilityLevel': fertilityLevel,
+      'soilType': soilType,
+      'pesticideUsage': pesticideUsage,
+      'seedsPerHectare': seedsPerHectare,
     };
   }
 
   static Stream<List<FarmPlot>> loadFarms() {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      return Stream.value([]);
-    }
-
+    if (user == null) return Stream.value([]);
     return FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .collection('farms')
         .snapshots()
         .map((snapshot) {
-      final farms = snapshot.docs.map((doc) {
+      return snapshot.docs.map((doc) {
         final data = doc.data();
         return FarmPlot(
-          id: data['id'],
-          name: data['name'],
-          area: data['area'],
+          id: data['id'] as String,
+          name: data['name'] as String,
+          area: (data['area'] as num).toDouble(),
           coordinates: (data['coordinates'] as List)
-              .map((coord) => LatLng(coord['lat'], coord['lng']))
+              .map((coord) => LatLng(
+            (coord['lat'] as num).toDouble(),
+            (coord['lng'] as num).toDouble(),
+          ))
               .toList(),
-          createdAt: DateTime.fromMillisecondsSinceEpoch(data['createdAt']),
-          geoHash: data['geoHash'],
+          createdAt: DateTime.fromMillisecondsSinceEpoch(data['createdAt'] as int),
+          geoHash: data['geoHash'] as String,
+          // Use defaults if these fields are missing.
+          sowingDate: data['sowingDate'] != null
+              ? DateTime.fromMillisecondsSinceEpoch(data['sowingDate'] as int)
+              : DateTime.now(),
+          fertilityLevel: data['fertilityLevel'] ?? 'Medium',
+          soilType: data['soilType'] ?? 'Sandy',
+          pesticideUsage: data['pesticideUsage'] ?? false,
+          seedsPerHectare: data['seedsPerHectare'] ?? 0,
         );
       }).toList();
-      return farms;
     });
   }
 }

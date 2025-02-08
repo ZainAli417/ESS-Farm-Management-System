@@ -793,7 +793,7 @@ packages:
     source: hosted
     version: "4.5.2"
   intl:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: intl
       sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
@@ -1136,14 +1136,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
-  simple_gesture_detector:
-    dependency: transitive
-    description:
-      name: simple_gesture_detector
-      sha256: ba2cd5af24ff20a0b8d609cec3f40e5b0744d2a71804a2616ae086b9c19d19a3
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.1"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -1213,27 +1205,19 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.4"
-  syncfusion_flutter_calendar:
+  syncfusion_flutter_charts:
     dependency: "direct main"
     description:
-      name: syncfusion_flutter_calendar
-      sha256: "593427a43fe5022955b1938d8b7f61bb000602bf835211e8c3fb8a0e3e2c04e1"
+      name: syncfusion_flutter_charts
+      sha256: "672c17a7f4cb3020c06bb6a28d2d033623007b8e2a19704ad34b412e9bdd2dab"
       url: "https://pub.dev"
     source: hosted
-    version: "28.2.4"
+    version: "28.2.4+1"
   syncfusion_flutter_core:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
       sha256: "3c1876b0a245de23de3b17a19e3106fed57d88f4fd2c8dc9bc1976705b1c31d5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "28.2.4"
-  syncfusion_flutter_datepicker:
-    dependency: transitive
-    description:
-      name: syncfusion_flutter_datepicker
-      sha256: "889b716d9de344852f651ecdcc726b6eeb9e326d95c1bb54df95631a5d7ead68"
       url: "https://pub.dev"
     source: hosted
     version: "28.2.4"
@@ -1245,14 +1229,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "28.2.3"
-  table_calendar:
-    dependency: "direct main"
-    description:
-      name: table_calendar
-      sha256: "0c0c6219878b363a2d5f40c7afb159d845f253d061dc3c822aa0d5fe0f721982"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.2.0"
   term_glyph:
     dependency: transitive
     description:
@@ -1269,14 +1245,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.3"
-  timezone:
-    dependency: transitive
-    description:
-      name: timezone
-      sha256: ffc9d5f4d1193534ef051f9254063fa53d588609418c84299956c3db9383587d
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.10.0"
   toggle_switch:
     dependency: "direct main"
     description:

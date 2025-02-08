@@ -12,7 +12,7 @@ import '../farm_model.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:html' as html;
 
-import '../widgets/Calender and graph.dart';
+import '../widgets/Weather and graph.dart';
 import '../widgets/farm card.dart'; // Only for Flutter web.
 
 class MapScreen extends StatefulWidget {
@@ -639,7 +639,7 @@ SizedBox(height: 20,),
                             builder: (context, provider, child) {
                               return GoogleMap(
                                 onMapCreated: (controller) {
-                                  provider.setMapController(controller);
+                                  provider.setMapController(context,controller);
                                 },
                                 initialCameraPosition: CameraPosition(
                                   target: provider.initialPoint,
@@ -715,15 +715,16 @@ SizedBox(height: 20,),
                     ],
                   ),
                 ),
+                SizedBox(height: 30),
+
               ],
             ),
           ),
-          SizedBox(height: 30),
 
           // Right Section: Calendar and Tasks Panel
           SizedBox(
             width: 350,
-            child: CalendarAndTasksPanel(),
+            child: WeatherAndTasksPanel(),
           ),
         ],
       ),
@@ -779,7 +780,7 @@ SizedBox(height: 20,),
         child: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: isSelected ? Color(0xFFE0C8A3) : Colors.grey[100], //  Softer background colors
+            color: isSelected ? Color(0xFF764A04) : Colors.grey[100], //  Softer background colors
             borderRadius: BorderRadius.circular(50),
             border: Border.all(color: Colors.grey[300]!), // Subtle border
             boxShadow: [ //  Softer shadow
@@ -790,7 +791,7 @@ SizedBox(height: 20,),
               ),
             ],
           ),
-          child: Icon(icon, color: Color(0xFF4E342E)), // Dark brown icon color
+          child: Icon(icon, color: isSelected ? Colors.white : const Color(0xFF764A04)), // Dark brown icon color
         ),
       ),
     );

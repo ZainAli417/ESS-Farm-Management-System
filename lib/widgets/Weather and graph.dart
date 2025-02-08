@@ -7,14 +7,14 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../Constant/controller_weather.dart';
 
-class CalendarAndTasksPanel extends StatefulWidget {
-  const CalendarAndTasksPanel({Key? key}) : super(key: key);
+class WeatherAndTasksPanel extends StatefulWidget {
+  const WeatherAndTasksPanel({Key? key}) : super(key: key);
 
   @override
-  _CalendarAndTasksPanelState createState() => _CalendarAndTasksPanelState();
+  _WeatherAndTasksPanelState createState() => _WeatherAndTasksPanelState();
 }
 
-class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
+class _WeatherAndTasksPanelState extends State<WeatherAndTasksPanel> {
   final WeatherController weatherController = Get.find<WeatherController>();
   bool _isCelsius = true;
 
@@ -39,7 +39,11 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
         Container(
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: Colors.white,
+            image: DecorationImage(
+              image: AssetImage('images/weatherbg.png'),
+              fit: BoxFit.cover,
+              colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.darken), // Added color filter to darken image
+            ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Obx(() {
@@ -61,7 +65,6 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
             double minTempDisplay = _isCelsius ? minTempCelsius : (minTempCelsius * 9 / 5) + 32;
             double feelsLikeDisplay = _isCelsius ? feelsLikeCelsius : (feelsLikeCelsius * 9 / 5) + 32;
 
-
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -71,13 +74,13 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(20),
+                        color:  const Color(0xFF764A04).withOpacity(0.8), // Reduced opacity for location container
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.location_on, color: Colors.white, size: 16),
-                          SizedBox(width: 5),
+                          const Icon(Icons.location_on, color: Colors.white, size: 16),
+                          const SizedBox(width: 5),
                           Text(
                             weatherController.weather.value.cityname,
                             style: GoogleFonts.quicksand(
@@ -91,14 +94,6 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                     ),
                     Row(
                       children: [
-                        _buildUnitSelector('C', true),
-                        SizedBox(width: 5),
-                        _buildUnitSelector('F', false),
-                      ],
-                    ),
-
-                    Row(
-                      children: [
                         GestureDetector(
                           onTap: () {
                             setState(() {
@@ -108,12 +103,12 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: _isCelsius ? Colors.green : Colors.grey.shade200,
+                              color: _isCelsius ? const Color(0xFF764A04) : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(5),
                             ),
                             child: Text(
                               'C',
-                              style: TextStyle(color: _isCelsius ? Colors.white : Colors.black87),
+                              style: GoogleFonts.quicksand(color: _isCelsius ? Colors.white : Colors.black87,fontWeight: FontWeight.w700),
                             ),
                           ),
                         ),
@@ -127,12 +122,12 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: !_isCelsius ? Colors.green : Colors.grey.shade200,
+                              color: !_isCelsius ? const Color(0xFF764A04) : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(5),
                             ),
                             child: Text(
                               'F',
-                              style: TextStyle(color: !_isCelsius ? Colors.white : Colors.black87),
+                              style: GoogleFonts.quicksand(color: !_isCelsius ? Colors.white : Colors.black87),
                             ),
                           ),
                         ),
@@ -146,15 +141,15 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                   style: GoogleFonts.quicksand(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: Colors.white,
                   ),
                 ),
                 Text(
-                  DateFormat('d MMM, yyyy').format(now), // Updated date format to include year
+                  DateFormat('d MMM, yyyy').format(now),
                   style: GoogleFonts.quicksand(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade800,
+                    color: Colors.white70,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -166,7 +161,7 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                       style: GoogleFonts.quicksand(
                         fontSize: 45,
                         fontWeight: FontWeight.w700,
-                        color: Colors.black87,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(width: 20),
@@ -178,7 +173,7 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                           style: GoogleFonts.quicksand(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            color: Colors.white,
                           ),
                         ),
                       ],
@@ -194,7 +189,7 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                       style: GoogleFonts.quicksand(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade800,
+                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -207,7 +202,7 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                       style: GoogleFonts.quicksand(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.grey.shade700,
+                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -220,16 +215,16 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: ElevatedButton.icon(
-            icon: const Icon(Icons.add,size: 30,),
+            icon: const Icon(Icons.add,size: 30, color: Colors.black87,), // Changed icon color
             label: Text(
               'Add Task',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600,fontSize: 15,wordSpacing: 1),
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600,fontSize: 15,wordSpacing: 1, color: Colors.black87), // Changed text color
             ),
             onPressed: () {
               // _showAddAgendaDialog(); // Removed calendar related functionality
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
+              backgroundColor: Colors.grey.shade200, // Changed button background color
               padding: const EdgeInsets.symmetric(vertical: 15),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -242,7 +237,7 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
           child: DefaultTabController(
             length: 2,
             child: Card(
-              color: Colors.white,
+              color: Colors.grey.shade50, // Changed card color to light grey
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -251,13 +246,13 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Colors.grey.shade200, // Slightly darker tab bar background
                       borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
                     ),
                     child: TabBar(
-                      indicatorColor: Colors.blue,
-                      labelColor: Colors.black,
+                      indicatorColor: const Color(0xFF764A04), // Changed indicator color to brown
+                      labelColor: Colors.black87, // Darker label color
                       unselectedLabelColor: Colors.black45,
                       labelStyle: GoogleFonts.quicksand(
                         fontWeight: FontWeight.w700,
@@ -281,7 +276,7 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                           const SizedBox(height: 6),
                           itemBuilder: (context, index) {
                             final task = pendingTasks[index];
-                            return TaskItem(
+                            return TaskItem( // Assuming TaskItem is defined elsewhere
                               task: task['task'],
                               icon: task['icon'],
                             );
@@ -294,7 +289,7 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
                           const SizedBox(height: 6),
                           itemBuilder: (context, index) {
                             final task = completedTasks[index];
-                            return TaskItem(
+                            return TaskItem( // Assuming TaskItem is defined elsewhere
                               task: task['task'],
                               icon: task['icon'],
                             );
@@ -309,26 +304,6 @@ class _CalendarAndTasksPanelState extends State<CalendarAndTasksPanel> {
           ),
         ),
       ],
-    );
-  }
-  Widget _buildUnitSelector(String unit, bool isCelsius) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _isCelsius = isCelsius;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: (_isCelsius == isCelsius) ? Colors.green : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          unit,
-          style: TextStyle(color: (_isCelsius == isCelsius) ? Colors.white : Colors.black87),
-        ),
-      ),
     );
   }
 
