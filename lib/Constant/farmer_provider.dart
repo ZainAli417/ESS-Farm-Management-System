@@ -969,7 +969,6 @@ class MapDrawingProvider with ChangeNotifier {
 
 
 
-
   void setCurrentTool(String tool) {
     if (tool == "hand") {
       isDrawing = false;
