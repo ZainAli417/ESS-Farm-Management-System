@@ -825,7 +825,7 @@ class MapDrawingProvider with ChangeNotifier {
         strokeWidth: 3,
       ),
     );
-
+    setCurrentTool('hand');
     // Show the farm details dialog (for entering details).
     await _showFarmDetailsDialog(context);
 

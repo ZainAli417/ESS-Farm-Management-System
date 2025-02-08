@@ -63,29 +63,29 @@ class DefaultFirebaseOptions {
     messagingSenderId: '181208508375',
     projectId: 'learning-ms-37dc0',
     storageBucket: 'learning-ms-37dc0.firebasestorage.app',
-    androidClientId: '181208508375-liv0ne4r7fdoftllfd3e8ats9k62uco9.apps.googleusercontent.com',
+    androidClientId: '181208508375-67um1ohblijqvmnqiv7dg7lnlgfcjvdb.apps.googleusercontent.com',
     iosClientId: '181208508375-jtfum007jjviv136rbhbbvor4sfp60lr.apps.googleusercontent.com',
     iosBundleId: 'com.example.essFms',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBGcjtoY2hclFtLwT6F-MtGvMW22cnxikA',
-    appId: '1:755512017161:ios:d9ca7eef741f29e3bbd3d8',
-    messagingSenderId: '755512017161',
-    projectId: 'iotcar-9259e',
-    databaseURL: 'https://iotcar-9259e-default-rtdb.firebaseio.com',
-    storageBucket: 'iotcar-9259e.appspot.com',
-    iosBundleId: 'com.example.projectDrone',
+    apiKey: 'AIzaSyB0xI9VASbb7dCakbrTQOE9UBeqpgmyDAQ',
+    appId: '1:181208508375:ios:be8c199837951e8d998d92',
+    messagingSenderId: '181208508375',
+    projectId: 'learning-ms-37dc0',
+    storageBucket: 'learning-ms-37dc0.firebasestorage.app',
+    androidClientId: '181208508375-67um1ohblijqvmnqiv7dg7lnlgfcjvdb.apps.googleusercontent.com',
+    iosClientId: '181208508375-jtfum007jjviv136rbhbbvor4sfp60lr.apps.googleusercontent.com',
+    iosBundleId: 'com.example.essFms',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCMAx8lJLo9t_4M-ufstXDu8teLIvYDPXs',
-    appId: '1:755512017161:web:a794e523fbe5f65bbbd3d8',
-    messagingSenderId: '755512017161',
-    projectId: 'iotcar-9259e',
-    authDomain: 'iotcar-9259e.firebaseapp.com',
-    databaseURL: 'https://iotcar-9259e-default-rtdb.firebaseio.com',
-    storageBucket: 'iotcar-9259e.appspot.com',
-    measurementId: 'G-3QQECNWV1T',
+    apiKey: 'AIzaSyC4OY3THV8bNpMMszJa22gG9qQrgrRspIs',
+    appId: '1:181208508375:web:8fcdd934300edc4a998d92',
+    messagingSenderId: '181208508375',
+    projectId: 'learning-ms-37dc0',
+    authDomain: 'learning-ms-37dc0.firebaseapp.com',
+    storageBucket: 'learning-ms-37dc0.firebasestorage.app',
   );
+
 }

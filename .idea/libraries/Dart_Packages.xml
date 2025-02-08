@@ -1101,6 +1101,13 @@
             </list>
           </value>
         </entry>
+        <entry key="timelines_plus">
+          <value>
+            <list>
+              <option value="$USER_HOME$/.pub-cache/hosted/pub.dev/timelines_plus-1.0.6/lib" />
+            </list>
+          </value>
+        </entry>
         <entry key="toggle_switch">
           <value>
             <list>
@@ -1471,6 +1478,7 @@
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/syncfusion_flutter_gauges-28.2.3/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/term_glyph-1.2.1/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/test_api-0.7.3/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/timelines_plus-1.0.6/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/toggle_switch-2.3.0/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/turf-0.0.10/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dev/turf_equality-0.1.0/lib" />
