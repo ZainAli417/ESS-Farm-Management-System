@@ -862,10 +862,6 @@ class MapDrawingProvider with ChangeNotifier {
 
 
 
-
-
-
-
   void addMarkerAndUpdatePolyline(BuildContext context, LatLng point) {
     if (currentTool != "marker") return;
 
