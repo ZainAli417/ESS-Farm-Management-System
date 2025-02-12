@@ -36,3 +36,29 @@ class Weather {
     );
   }
 }
+class WeeklyWeather {
+  final String date;
+  final double maxTemp;
+  final double minTemp;
+
+  final String condition;
+  final String icon;
+
+  WeeklyWeather({
+    required this.date,
+    required this.maxTemp,
+    required this.minTemp,
+    required this.condition,
+    required this.icon,
+  });
+
+  factory WeeklyWeather.fromJson(Map<String, dynamic> json) {
+    return WeeklyWeather(
+      date: json['date'],
+      maxTemp: json['day']['maxtemp_c'].toDouble(),
+      minTemp: json['day']['mintemp_c'].toDouble(),
+      condition: json['day']['condition']['text'],
+      icon: json['day']['condition']['icon'],
+    );
+  }
+}

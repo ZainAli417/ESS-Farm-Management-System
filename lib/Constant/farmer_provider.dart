@@ -5,9 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:path/path.dart';
+import 'package:provider/provider.dart';
 import 'package:turf/turf.dart' as turf;
-import '../farm_model.dart';
 import '../geoflutter/src/geoflutterfire.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -18,7 +17,7 @@ class MapDrawingProvider with ChangeNotifier {
   String currentTool = "hand";
   LatLng? initialPointForDrawing;
   final Geoflutterfire geo = Geoflutterfire();
-  String _tempFarmName = "";
+  final String _tempFarmName = "";
 
   // UI and state management
   bool isFarmSelected = false;
@@ -37,8 +36,8 @@ class MapDrawingProvider with ChangeNotifier {
   double circleRadius = 0.0;
   List<FarmPlot> farms = [];
   bool get toolSelected => _toolSelected;
-  List<Polygon> _tempPolygons = [];
-  List<Marker> _tempMarkers = [];
+  final List<Polygon> _tempPolygons = [];
+  final List<Marker> _tempMarkers = [];
   List<LatLng> currentPolylinePoints = [];
   Set<Marker> get allMarkers => {
         ...markers,
@@ -109,6 +108,7 @@ class MapDrawingProvider with ChangeNotifier {
 
     return lines;
   }
+
   String _selectedAreaUnit = 'ha';
   String get selectedAreaUnit => _selectedAreaUnit;
   Set<Circle> get allCircles => {
@@ -125,10 +125,14 @@ class MapDrawingProvider with ChangeNotifier {
             strokeWidth: 2,
           ),
       };
-  List<Polyline> _tempPolylines = []; // Temporary polylines for current drawing
+  final List<Polyline> _tempPolylines =
+      []; // Temporary polylines for current drawing
   bool isFarmDetailsVisible = false;
+  bool _isBottomSheetOpen = false;
+  bool get isBottomSheetOpen => _isBottomSheetOpen;
   MapType _mapType = MapType.satellite;
   MapType get mapType => _mapType;
+
   final List<MapType> mapTypes = [
     MapType.normal,
     MapType.satellite,
@@ -196,6 +200,7 @@ class MapDrawingProvider with ChangeNotifier {
     isLoading = false;
     notifyListeners();
   }
+
   void animateCameraTo(LatLng latLng) {
     if (mapController != null) {
       mapController!.animateCamera(
@@ -205,44 +210,60 @@ class MapDrawingProvider with ChangeNotifier {
       );
     }
   }
+
   void setMapType(MapType newMapType) {
     _mapType = newMapType;
     notifyListeners();
   }
 
+  void setBottomSheetOpen(bool value) {
+    _isBottomSheetOpen = value;
+    notifyListeners();
+  }
 
-  Future<void> _showFarmDetailsDialog(BuildContext context) async {
+  Future<void> register_farm(BuildContext context) async {
+    final provider = Provider.of<MapDrawingProvider>(context, listen: false);
+    provider.setBottomSheetOpen(true); // Disable map interactions
     final area = _calculatePolygonArea(currentPolygonPoints);
     final farmId = 'FARM-${DateTime.now().millisecondsSinceEpoch}';
-    final TextEditingController _controller = TextEditingController();
-    final FocusNode _focusNode = FocusNode();
+    final TextEditingController controller = TextEditingController();
+    final FocusNode focusNode = FocusNode();
 
     // New temporary state variables
-    DateTime _tempSowingDate = DateTime.now();
-    String _tempFertility = 'Medium';
-    String _tempSoilType = 'Sandy';
-    bool _tempPesticideUsage = false;
-    int _tempSeedsPerHectare = 0;
-    String _tempFarmName = ''; // Initialize _tempFarmName
+    DateTime tempSowingDate = DateTime.now();
+    String tempFertility = 'Medium';
+    String tempSoilType = 'Sandy';
+    bool tempPesticideUsage = false;
+    int tempSeedsPerHectare = 0;
+    String tempCropName = ''; // Changed to tempCropName to reflect crop data
 
-    await showModalBottomSheet( // Changed to showModalBottomSheet
+    await showModalBottomSheet(
+      // Changed to showModalBottomSheet
       isScrollControlled: true,
       context: context,
-      backgroundColor: Colors.transparent, // Make background transparent for blur
-      builder: (context) => BackdropFilter( // Add BackdropFilter for blur
+      backgroundColor:
+          Colors.transparent, // Make background transparent for blur
+      builder: (context) => BackdropFilter(
+        // Add BackdropFilter for blur
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: StatefulBuilder(
           builder: (context, setState) {
-            return Container( // Container for bottom sheet styling
+            return Container(
+              // Container for bottom sheet styling
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust for keyboard
+                bottom: MediaQuery.of(context)
+                    .viewInsets
+                    .bottom, // Adjust for keyboard
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F8F8), // Silver White background for bottom sheet
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)), // Rounded top corners
+                color: const Color(
+                    0xFFF8F8F8), // Silver White background for bottom sheet
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(25.0)), // Rounded top corners
               ),
               child: Padding(
-                padding: const EdgeInsets.all(24.0), // Increased padding for better spacing
+                padding: const EdgeInsets.all(
+                    24.0), // Increased padding for better spacing
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -254,35 +275,47 @@ class MapDrawingProvider with ChangeNotifier {
                         style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w700,
                           fontSize: 28, // Increased title font size
-                          color: const Color(0xFF643905), // Dark green for title
+                          color:
+                              const Color(0xFF643905), // Dark green for title
                         ),
                       ),
-                      const SizedBox(height: 24), // Increased spacing below title
+                      const SizedBox(
+                          height: 24), // Increased spacing below title
                       // Crop Name / Farm Name (already added)
                       TextFormField(
-                        controller: _controller,
-                        focusNode: _focusNode,
+                        controller: controller,
+                        focusNode: focusNode,
                         autofocus: false, // Disable autofocus for bottom sheet
                         decoration: InputDecoration(
-                          labelText: "Crop Name / Farm Name",
-                          labelStyle: GoogleFonts.quicksand(color: const Color(
-                              0xFF5D4037), fontWeight: FontWeight.w600), // Olive green label, bold label
+                          labelText:
+                              "Crop Name / Farm Name", // Label changed to Crop Name / Farm Name
+                          labelStyle: GoogleFonts.quicksand(
+                              color: const Color(0xFF5D4037),
+                              fontWeight: FontWeight
+                                  .w600), // Olive green label, bold label
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                            borderSide: const BorderSide(color: Color(0xFFBDBDBD)), // Light grey border
+                            borderRadius: BorderRadius.circular(
+                                12.0), // More rounded corners
+                            borderSide: const BorderSide(
+                                color: Color(0xFFBDBDBD)), // Light grey border
                           ),
-                          focusedBorder: OutlineInputBorder( // Focused border color
-                            borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                            borderSide: const BorderSide(color: Color(0xFF643905)), // Dark green focused border
+                          focusedBorder: OutlineInputBorder(
+                            // Focused border color
+                            borderRadius: BorderRadius.circular(
+                                12.0), // More rounded corners
+                            borderSide: const BorderSide(
+                                color: Color(
+                                    0xFF643905)), // Dark green focused border
                           ),
                           isDense: true,
                           filled: true,
                           fillColor: Colors.white, // White fill for text field
                         ),
-                        cursorColor: const Color(0xFF643905), // Dark green cursor
+                        cursorColor:
+                            const Color(0xFF643905), // Dark green cursor
                         onChanged: (v) {
                           setState(() {
-                            _tempFarmName = v;
+                            tempCropName = v; // Changed to tempCropName
                           });
                         },
                       ),
@@ -292,54 +325,91 @@ class MapDrawingProvider with ChangeNotifier {
                         onTap: () async {
                           final picked = await showDatePicker(
                             context: context,
-                            initialDate: _tempSowingDate,
+                            initialDate: tempSowingDate,
                             firstDate: DateTime(2020),
                             lastDate: DateTime(2100),
                             builder: (BuildContext context, Widget? child) {
-                              return Theme( // Custom theme for DatePicker
+                              return Theme(
+                                // Custom theme for DatePicker
+
                                 data: Theme.of(context).copyWith(
                                   colorScheme: const ColorScheme.light(
-                                    primary: Color(0xFF643905), // Dark green primary color
-                                    onPrimary: Colors.white, // White text color on primary
-                                    onSurface: Color(0xFF5D4037), // Olive green surface color
+                                    primary: Color(
+                                        0xFF643905), // Dark green primary color
+
+                                    onPrimary: Colors
+                                        .white, // White text color on primary
+
+                                    onSurface: Color(
+                                        0xFF5D4037), // Olive green surface color
                                   ),
                                   textButtonTheme: TextButtonThemeData(
                                     style: TextButton.styleFrom(
-                                      foregroundColor: Color(0xFF643905), // Dark green button text color
+                                      foregroundColor: Color(
+                                          0xFF643905), // Dark green button text color
                                     ),
                                   ),
                                 ),
+
                                 child: child!,
                               );
                             },
                           );
+
                           if (picked != null) {
                             setState(() {
-                              _tempSowingDate = picked;
+                              tempSowingDate = picked;
                             });
                           }
                         },
                         child: InputDecorator(
                           decoration: InputDecoration(
                             labelText: "Sowing Date",
-                            labelStyle: GoogleFonts.quicksand(color: const Color(0xFF5D4037), fontWeight: FontWeight.w600), // Olive green label, bold label
+
+                            labelStyle: GoogleFonts.quicksand(
+                                color: const Color(0xFF5D4037),
+                                fontWeight: FontWeight
+                                    .w600), // Olive green label, bold label
+
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                              borderSide: const BorderSide(color: Color(0xFFBDBDBD)), // Light grey border
+                              borderRadius: BorderRadius.circular(
+                                  12.0), // More rounded corners
+
+                              borderSide: const BorderSide(
+                                  color:
+                                      Color(0xFFBDBDBD)), // Light grey border
                             ),
-                            focusedBorder: OutlineInputBorder( // Focused border color
-                              borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                              borderSide: const BorderSide(color: Color(0xFF643905)), // Dark green focused border
+
+                            focusedBorder: OutlineInputBorder(
+                              // Focused border color
+
+                              borderRadius: BorderRadius.circular(
+                                  12.0), // More rounded corners
+
+                              borderSide: const BorderSide(
+                                  color: Color(
+                                      0xFF643905)), // Dark green focused border
                             ),
+
                             isDense: true,
+
                             filled: true,
+
                             fillColor: Colors.white, // White fill
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("${_tempSowingDate.toLocal()}".split(' ')[0], style: GoogleFonts.quicksand(color: Colors.black87, fontWeight: FontWeight.w600)), // Bold date text
-                              const Icon(Icons.calendar_today, size: 20, color: Color(0xFF5D4037)), // Olive green icon, slightly larger
+                              Text("${tempSowingDate.toLocal()}".split(' ')[0],
+                                  style: GoogleFonts.quicksand(
+                                      color: Colors.black87,
+                                      fontWeight:
+                                          FontWeight.w600)), // Bold date text
+
+                              const Icon(Icons.calendar_today,
+                                  size: 20,
+                                  color: Color(
+                                      0xFF5D4037)), // Olive green icon, slightly larger
                             ],
                           ),
                         ),
@@ -348,20 +418,30 @@ class MapDrawingProvider with ChangeNotifier {
                       // Existing Farm ID and Area details
                       _FarmDetailsRow(title: "Farm ID:", value: farmId),
                       _FarmDetailsRow(
-                          title: "Area:", value: _formatArea(area, selectedAreaUnit)),
+                          title: "Area:",
+                          value: _formatArea(area, selectedAreaUnit)),
                       const SizedBox(height: 16), // Increased spacing
                       // Fertility Level (Low, Medium, High)
                       InputDecorator(
                         decoration: InputDecoration(
                           labelText: "Fertility Level",
-                          labelStyle: GoogleFonts.quicksand(color: const Color(0xFF5D4037), fontWeight: FontWeight.w600), // Olive green label, bold label
+                          labelStyle: GoogleFonts.quicksand(
+                              color: const Color(0xFF5D4037),
+                              fontWeight: FontWeight
+                                  .w600), // Olive green label, bold label
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                            borderSide: const BorderSide(color: Color(0xFFBDBDBD)), // Light grey border
+                            borderRadius: BorderRadius.circular(
+                                12.0), // More rounded corners
+                            borderSide: const BorderSide(
+                                color: Color(0xFFBDBDBD)), // Light grey border
                           ),
-                          focusedBorder: OutlineInputBorder( // Focused border color
-                            borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                            borderSide: const BorderSide(color: Color(0xFF643905)), // Dark green focused border
+                          focusedBorder: OutlineInputBorder(
+                            // Focused border color
+                            borderRadius: BorderRadius.circular(
+                                12.0), // More rounded corners
+                            borderSide: const BorderSide(
+                                color: Color(
+                                    0xFF643905)), // Dark green focused border
                           ),
                           isDense: true,
                           filled: true,
@@ -375,76 +455,132 @@ class MapDrawingProvider with ChangeNotifier {
                               children: [
                                 Radio<String>(
                                   value: level,
-                                  groupValue: _tempFertility,
-                                  activeColor: const Color(0xFF643905), // Dark green active color for radio
+                                  groupValue: tempFertility,
+                                  activeColor: const Color(
+                                      0xFF643905), // Dark green active color for radio
                                   onChanged: (value) {
                                     setState(() {
-                                      _tempFertility = value!;
+                                      tempFertility = value!;
                                     });
                                   },
                                 ),
-                                Text(level, style: GoogleFonts.quicksand(color: Colors.black87, fontWeight: FontWeight.w600)), // Bold level text
+                                Text(level,
+                                    style: GoogleFonts.quicksand(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight
+                                            .w600)), // Bold level text
                               ],
                             );
                           }).toList(),
                         ),
                       ),
+
                       const SizedBox(height: 16), // Increased spacing
-                      // Soil Type (Sandy, Clay Loamy)
+
+// Soil Type (Sandy, Clay Loamy)
+
                       InputDecorator(
                         decoration: InputDecoration(
                           labelText: "Soil Type",
-                          labelStyle: GoogleFonts.quicksand(color: const Color(0xFF5D4037), fontWeight: FontWeight.w600), // Olive green label, bold label
+
+                          labelStyle: GoogleFonts.quicksand(
+                              color: const Color(0xFF5D4037),
+                              fontWeight: FontWeight
+                                  .w600), // Olive green label, bold label
+
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                            borderSide: const BorderSide(color: Color(0xFFBDBDBD)), // Light grey border
+                            borderRadius: BorderRadius.circular(
+                                12.0), // More rounded corners
+
+                            borderSide: const BorderSide(
+                                color: Color(0xFFBDBDBD)), // Light grey border
                           ),
-                          focusedBorder: OutlineInputBorder( // Focused border color
-                            borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                            borderSide: const BorderSide(color: Color(0xFF643905)), // Dark green focused border
+
+                          focusedBorder: OutlineInputBorder(
+                            // Focused border color
+
+                            borderRadius: BorderRadius.circular(
+                                12.0), // More rounded corners
+
+                            borderSide: const BorderSide(
+                                color: Color(
+                                    0xFF643905)), // Dark green focused border
                           ),
+
                           isDense: true,
+
                           filled: true,
+
                           fillColor: Colors.white, // White fill
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: ['Sandy', 'Clay' ,'Loamy'].map((type) {
+                          children: ['Sandy', 'Clay', 'Loamy'].map((type) {
                             return Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Radio<String>(
                                   value: type,
-                                  groupValue: _tempSoilType,
-                                  activeColor: const Color(0xFF643905), // Dark green active color for radio
+
+                                  groupValue: tempSoilType,
+
+                                  activeColor: const Color(
+                                      0xFF643905), // Dark green active color for radio
+
                                   onChanged: (value) {
                                     setState(() {
-                                      _tempSoilType = value!;
+                                      tempSoilType = value!;
                                     });
                                   },
                                 ),
-                                Text(type, style: GoogleFonts.quicksand(color: Colors.black87, fontWeight: FontWeight.w600)), // Bold type text
+
+                                Text(type,
+                                    style: GoogleFonts.quicksand(
+                                        color: Colors.black87,
+                                        fontWeight:
+                                            FontWeight.w600)), // Bold type text
                               ],
                             );
                           }).toList(),
                         ),
                       ),
+
                       const SizedBox(height: 16), // Increased spacing
-                      // Pesticide Usage (Yes/No)
+
+// Pesticide Usage (Yes/No)
+
                       InputDecorator(
                         decoration: InputDecoration(
                           labelText: "Pesticide Usage",
-                          labelStyle: GoogleFonts.quicksand(color: const Color(0xFF5D4037), fontWeight: FontWeight.w600), // Olive green label, bold label
+
+                          labelStyle: GoogleFonts.quicksand(
+                              color: const Color(0xFF5D4037),
+                              fontWeight: FontWeight
+                                  .w600), // Olive green label, bold label
+
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                            borderSide: const BorderSide(color: Color(0xFFBDBDBD)), // Light grey border
+                            borderRadius: BorderRadius.circular(
+                                12.0), // More rounded corners
+
+                            borderSide: const BorderSide(
+                                color: Color(0xFFBDBDBD)), // Light grey border
                           ),
-                          focusedBorder: OutlineInputBorder( // Focused border color
-                            borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                            borderSide: const BorderSide(color: Color(0xFF643905)), // Dark green focused border
+
+                          focusedBorder: OutlineInputBorder(
+                            // Focused border color
+
+                            borderRadius: BorderRadius.circular(
+                                12.0), // More rounded corners
+
+                            borderSide: const BorderSide(
+                                color: Color(
+                                    0xFF643905)), // Dark green focused border
                           ),
+
                           isDense: true,
+
                           filled: true,
+
                           fillColor: Colors.white, // White fill
                         ),
                         child: Row(
@@ -454,79 +590,131 @@ class MapDrawingProvider with ChangeNotifier {
                               children: [
                                 Radio<bool>(
                                   value: true,
-                                  groupValue: _tempPesticideUsage,
-                                  activeColor: const Color(0xFF643905), // Dark green active color for radio
+
+                                  groupValue: tempPesticideUsage,
+
+                                  activeColor: const Color(
+                                      0xFF643905), // Dark green active color for radio
+
                                   onChanged: (value) {
                                     setState(() {
-                                      _tempPesticideUsage = true;
+                                      tempPesticideUsage = true;
                                     });
                                   },
                                 ),
-                                Text("Yes", style: GoogleFonts.quicksand(color: Colors.black87, fontWeight: FontWeight.w600)), // Bold Yes/No text
+
+                                Text("Yes",
+                                    style: GoogleFonts.quicksand(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight
+                                            .w600)), // Bold Yes/No text
                               ],
                             ),
                             Row(
                               children: [
                                 Radio<bool>(
                                   value: false,
-                                  groupValue: _tempPesticideUsage,
-                                  activeColor: const Color(0xFF643905), // Dark green active color for radio
+
+                                  groupValue: tempPesticideUsage,
+
+                                  activeColor: const Color(
+                                      0xFF643905), // Dark green active color for radio
+
                                   onChanged: (value) {
                                     setState(() {
-                                      _tempPesticideUsage = false;
+                                      tempPesticideUsage = false;
                                     });
                                   },
                                 ),
-                                Text("No", style: GoogleFonts.quicksand(color: Colors.black87, fontWeight: FontWeight.w600)), // Bold Yes/No text
+
+                                Text("No",
+                                    style: GoogleFonts.quicksand(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight
+                                            .w600)), // Bold Yes/No text
                               ],
                             ),
                           ],
                         ),
                       ),
+
                       const SizedBox(height: 16), // Increased spacing
-                      // Seeds per Hectare counter with plus/minus buttons
+
+// Seeds per Hectare counter with plus/minus buttons
+
                       InputDecorator(
                         decoration: InputDecoration(
                           labelText: "Seeds per Hectare",
-                          labelStyle: GoogleFonts.quicksand(color: const Color(0xFF5D4037), fontWeight: FontWeight.w600), // Olive green label, bold label
+
+                          labelStyle: GoogleFonts.quicksand(
+                              color: const Color(0xFF5D4037),
+                              fontWeight: FontWeight
+                                  .w600), // Olive green label, bold label
+
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                            borderSide: const BorderSide(color: Color(0xFFBDBDBD)), // Light grey border
+                            borderRadius: BorderRadius.circular(
+                                12.0), // More rounded corners
+
+                            borderSide: const BorderSide(
+                                color: Color(0xFFBDBDBD)), // Light grey border
                           ),
-                          focusedBorder: OutlineInputBorder( // Focused border color
-                            borderRadius: BorderRadius.circular(12.0), // More rounded corners
-                            borderSide: const BorderSide(color: Color(0xFF643905)), // Dark green focused border
+
+                          focusedBorder: OutlineInputBorder(
+                            // Focused border color
+
+                            borderRadius: BorderRadius.circular(
+                                12.0), // More rounded corners
+
+                            borderSide: const BorderSide(
+                                color: Color(
+                                    0xFF643905)), // Dark green focused border
                           ),
+
                           isDense: true,
+
                           filled: true,
+
                           fillColor: Colors.white, // White fill
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             IconButton(
-                              icon: const Icon(Icons.remove, color: Color(0xFF5D4037)), // Olive green icon
+                              icon: const Icon(Icons.remove,
+                                  color: Color(0xFF5D4037)), // Olive green icon
+
                               onPressed: () {
                                 setState(() {
-                                  if (_tempSeedsPerHectare > 0) _tempSeedsPerHectare--;
+                                  if (tempSeedsPerHectare > 0)
+                                    tempSeedsPerHectare--;
                                 });
                               },
                             ),
-                            Text('$_tempSeedsPerHectare',
-                                style: GoogleFonts.quicksand(fontSize: 18, color: Colors.black87, fontWeight: FontWeight.w600)), // Bold seeds count
+
+                            Text('$tempSeedsPerHectare',
+                                style: GoogleFonts.quicksand(
+                                    fontSize: 18,
+                                    color: Colors.black87,
+                                    fontWeight:
+                                        FontWeight.w600)), // Bold seeds count
+
                             IconButton(
-                              icon: const Icon(Icons.add, color: Color(0xFF5D4037)), // Olive green icon
+                              icon: const Icon(Icons.add,
+                                  color: Color(0xFF5D4037)), // Olive green icon
+
                               onPressed: () {
                                 setState(() {
-                                  _tempSeedsPerHectare++;
+                                  tempSeedsPerHectare++;
                                 });
                               },
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24), // Increased spacing before buttons
-                      // Buttons
+                      SizedBox(
+                        height: 24,
+                      ),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -538,38 +726,53 @@ class MapDrawingProvider with ChangeNotifier {
                               notifyListeners();
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF757575), // Grey for discard button
+                              foregroundColor: const Color(
+                                  0xFF757575), // Grey for discard button
                             ),
-                            child: Text("Discard", style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)), // Bold button text
+                            child: Text("Discard",
+                                style: GoogleFonts.quicksand(
+                                    fontWeight:
+                                        FontWeight.w700)), // Bold button text
                           ),
                           ElevatedButton(
-                            onPressed: _tempFarmName.isNotEmpty
+                            onPressed: tempCropName
+                                    .isNotEmpty // Changed to tempCropName
                                 ? () {
-                              _saveFarmPlot(
-                                context,
-                                farmId,
-                                area,
-                                sowingDate: _tempSowingDate,
-                                fertilityLevel: _tempFertility,
-                                soilType: _tempSoilType,
-                                pesticideUsage: _tempPesticideUsage,
-                                seedsPerHectare: _tempSeedsPerHectare,
-                              );
-// Transfer temporary shapes to the permanent lists
-                              polygons.addAll(_tempPolygons);
-                              markers.addAll(_tempMarkers);
-                              _tempPolygons.clear();
-                              _tempMarkers.clear();
-                              Navigator.pop(context);
-                              _resetToolSelection();
-                            }
+                                    _saveFarmPlot(
+                                      context,
+                                      farmId,
+                                      area,
+                                      sowingDate: tempSowingDate,
+                                      fertilityLevel: tempFertility,
+                                      soilType: tempSoilType,
+                                      pesticideUsage: tempPesticideUsage,
+                                      seedsPerHectare: tempSeedsPerHectare,
+                                      cropName:
+                                          tempCropName, // Changed to cropName
+                                    );
+                                    // Transfer temporary shapes to the permanent lists
+                                    polygons.addAll(_tempPolygons);
+                                    markers.addAll(_tempMarkers);
+                                    _tempPolygons.clear();
+                                    _tempMarkers.clear();
+                                    Navigator.pop(context);
+                                    _resetToolSelection();
+                                  }
                                 : null,
+
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF643905), // Dark green save button background
-                              foregroundColor: Colors.white, // White save button text color
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)), // Rounded corners for button
+                              backgroundColor: const Color(
+                                  0xFF643905), // Dark green save button background
+                              foregroundColor:
+                                  Colors.white, // White save button text color
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      10.0)), // Rounded corners for button
                             ),
-                            child: Text("Save", style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: Colors.white)), // Bold button text
+                            child: Text("Save",
+                                style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white)), // Bold button text
                           ),
                         ],
                       ),
@@ -582,55 +785,9 @@ class MapDrawingProvider with ChangeNotifier {
         ),
       ),
     );
+    provider.setBottomSheetOpen(false);
     _resetToolSelection();
   }
-
-  Future<void> _saveFarmPlot(BuildContext context, String id, double area, {required DateTime sowingDate,required String fertilityLevel, required String soilType, required bool pesticideUsage, required int seedsPerHectare,}) async {
-    if (currentPolygonPoints.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error: No coordinates found for the farm!")),
-      );
-      return;
-    }
-
-    try {
-      final geoPoint = geo.point(
-        latitude: currentPolygonPoints.first.latitude,
-        longitude: currentPolygonPoints.first.longitude,
-      );
-
-      final newFarm = FarmPlot(
-        id: id,
-        name: _tempFarmName,
-        area: area,
-        coordinates: List.from(currentPolygonPoints),
-        createdAt: DateTime.now(),
-        geoHash: geoPoint.hash,
-        sowingDate: sowingDate,
-        fertilityLevel: fertilityLevel,
-        soilType: soilType,
-        pesticideUsage: pesticideUsage,
-        seedsPerHectare: seedsPerHectare,
-      );
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(FirebaseAuth.instance.currentUser?.uid)
-          .collection('farms')
-          .doc(id)
-          .set(newFarm.toMap());
-
-      farms.add(newFarm);
-      Navigator.pop(context);
-      notifyListeners();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving farm: ${e.toString()}')),
-      );
-    }
-  }
-
-
   void loadFarms(BuildContext context) {
     FarmPlot.loadFarms().listen((loadedFarms) async {
       farms.clear();
@@ -650,7 +807,7 @@ class MapDrawingProvider with ChangeNotifier {
             points: farm.coordinates,
             fillColor: Colors.green.withOpacity(0.3),
             strokeColor: Colors.green,
-            strokeWidth: 2,
+            strokeWidth: 3,
             consumeTapEvents: true,
             onTap: () => selectFarm(farm),
           ),
@@ -661,107 +818,6 @@ class MapDrawingProvider with ChangeNotifier {
       notifyListeners();
     });
   }
-
-
-
-  Future<void> _addFarmMarker(BuildContext context, FarmPlot farm, {String markerAsset = 'images/farmer.png'}) async {
-    // Calculate the centroid from the farm's coordinates.
-    LatLng center = _calculateCentroid(farm.coordinates);
-
-    // Load the custom marker icon with reduced size.
-    BitmapDescriptor customIcon = await BitmapDescriptor.asset(
-      const ImageConfiguration(size: Size(50, 60)),
-      markerAsset,
-    );
-
-    markers.add(
-      Marker(
-        markerId: MarkerId('farm_center_${farm.id}'),
-        position: center,
-        icon: customIcon,
-        // We use an empty infoWindow here since tapping will show our custom widget.
-        infoWindow: const InfoWindow(title: '', snippet: ''),
-        onTap: () {
-          _showCustomInfoWindow(context, farm);
-        },
-      ),
-    );
-  }
-
-  /// Custom info window showing detailed farm information with rich text styling.
-  void _showCustomInfoWindow(BuildContext context, FarmPlot farm) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0), // Reduced outer spacing
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)), // More rounded corners
-        elevation: 5, // Increased elevation for a more pronounced shadow
-        backgroundColor: Colors.grey.shade50, // Soft background color
-        child: Padding(
-          padding: const EdgeInsets.all(20.0), // Increased padding inside the dialog
-          child: Column(
-            mainAxisSize: MainAxisSize.min, // Ensure dialog wraps content
-            crossAxisAlignment: CrossAxisAlignment.start, // Align text to the start
-            children: [
-              Text( // Farm Name as Title
-                farm.name,
-                style: GoogleFonts.quicksand(
-                  fontSize: 22, // Larger font size for title
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF333333), // Darker title color
-                ),
-              ),
-              const SizedBox(height: 15), // Increased spacing after title
-              RichText(
-                text: TextSpan(
-                  style: GoogleFonts.quicksand(fontSize: 16, color: Colors.black87, height: 1.4), // Increased font size and line height for readability
-                  children: [
-                    TextSpan(
-                      text: "Area: ",
-                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: const Color(0xFF555555)), // Slightly darker bold labels
-                    ),
-                    TextSpan(text: "${_formatArea(farm.area, 'ha')}\n"),
-                    const TextSpan(text: "\n"), // Added more spacing between items
-                    TextSpan(
-                      text: "Sowing: ",
-                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: const Color(0xFF555555)),
-                    ),
-                    TextSpan(text: "${farm.sowingDate.toLocal().toString().split(' ')[0]}\n"),
-                    const TextSpan(text: "\n"), // Added more spacing between items
-                    TextSpan(
-                      text: "Fertility: ",
-                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: const Color(0xFF555555)),
-                    ),
-                    TextSpan(text: "${farm.fertilityLevel}\n"),
-                    const TextSpan(text: "\n"), // Added more spacing between items
-                    TextSpan(
-                      text: "Soil: ",
-                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: const Color(0xFF555555)),
-                    ),
-                    TextSpan(text: "${farm.soilType}\n"),
-                    const TextSpan(text: "\n"), // Added more spacing between items
-                    TextSpan(
-                      text: "Pesticide: ",
-                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: const Color(0xFF555555)),
-                    ),
-                    TextSpan(text: "${farm.pesticideUsage ? 'Yes' : 'No'}\n"),
-                    const TextSpan(text: "\n"), // Added more spacing between items
-                    TextSpan(
-                      text: "Seeds/Hectare: ",
-                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: const Color(0xFF555555)),
-                    ),
-                    TextSpan(text: "${farm.seedsPerHectare}"),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-
   void finalizePolylineAndCreateFarm(BuildContext context) {
     if (currentPolylinePoints.length < 3) return;
 
@@ -776,17 +832,12 @@ class MapDrawingProvider with ChangeNotifier {
 
     FarmPlot farm = FarmPlot(
       id: 'farm_${DateTime.now().millisecondsSinceEpoch}',
-      name: 'Farm ${farms.length + 1}',
+      name:
+      'Farm ${farms.length + 1}', // Default farm name, can be updated later
       area: area,
       coordinates: polygonPoints,
       createdAt: DateTime.now(),
       geoHash: geoPoint.hash,
-      // Placeholder values for new fields:
-      sowingDate: DateTime.now(),
-      fertilityLevel: 'Medium',
-      soilType: 'Sandy',
-      pesticideUsage: false,
-      seedsPerHectare: 0,
     );
 
     farms.add(farm);
@@ -796,8 +847,8 @@ class MapDrawingProvider with ChangeNotifier {
         polygonId: PolygonId(farm.id),
         points: polygonPoints,
         strokeColor: Colors.blue,
-        fillColor: Colors.blue.withOpacity(0.15),
-        strokeWidth: 2,
+        fillColor: Colors.blue.withOpacity(0.4),
+        strokeWidth: 3,
       ),
     );
 
@@ -825,9 +876,9 @@ class MapDrawingProvider with ChangeNotifier {
         strokeWidth: 3,
       ),
     );
-    setCurrentTool('hand');
+
     // Show the farm details dialog (for entering details).
-    await _showFarmDetailsDialog(context);
+    await register_farm(context);
 
     markers.addAll(_tempMarkers);
     polylines.addAll(_tempPolylines);
@@ -848,6 +899,249 @@ class MapDrawingProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _saveFarmPlot(
+      BuildContext context, String id, double area,
+      {required DateTime sowingDate,
+        required String fertilityLevel,
+        required String soilType,
+        required bool pesticideUsage,
+        required int seedsPerHectare,
+        required String cropName}) async {
+    if (currentPolygonPoints.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Error: No coordinates found for the farm!")),
+      );
+      return;
+    }
+    try {
+      final geoPoint = geo.point(
+        latitude: currentPolygonPoints.first.latitude,
+        longitude: currentPolygonPoints.first.longitude,
+      );
+
+      final newFarm = FarmPlot(
+        id: id,
+        name: cropName, // Farm name is now crop name for farm plot
+        area: area,
+        coordinates: List.from(currentPolygonPoints),
+        createdAt: DateTime.now(),
+        geoHash: geoPoint.hash,
+      );
+
+      final farmDocRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .collection('farms')
+          .doc(id);
+
+      await farmDocRef.set(newFarm.toMap()); // Save FarmPlot data
+
+      final currentYear = DateTime.now().year.toString(); // Get current year
+      final String cropId = 'Crop-${DateTime.now().millisecondsSinceEpoch}'; // Generate unique Crop ID
+
+      final cropData = CropData(
+        // Create CropData object
+        cropName: cropName, // Use cropName here
+        sowingDate: sowingDate,
+        fertilityLevel: fertilityLevel,
+        soilType: soilType,
+        pesticideUsage: pesticideUsage,
+        seedsPerHectare: seedsPerHectare,
+      );
+
+      await farmDocRef
+          .collection('farms_crops') // Subcollection for crops
+          .doc('Year-$currentYear') // Document for current year
+          .collection('crops') // Subcollection for crops in that year
+          .doc(cropId) // Use distinct cropId here
+          .set(cropData.toMap()); // Save CropData
+
+      // farms.add(newFarm); // REMOVE THIS LINE - Rely on stream update
+      Navigator.pop(context);
+      _resetToolSelection(); // Ensure tool selection is reset
+      notifyListeners();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error saving farm: ${e.toString()}')),
+      );
+    }
+  }
+
+
+  void _showCustomInfoWindow(BuildContext context, FarmPlot farm) async {
+    // Fetch Crop Data for the current year
+    final currentYear = DateTime.now().year.toString();
+    // Assuming you want to fetch the latest crop data, you might need to adjust this query
+    // to fetch the crop with the latest timestamp or based on some other criteria
+    QuerySnapshot cropDocsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .collection('farms')
+        .doc(farm.id)
+        .collection('farms_crops')
+        .doc('Year-$currentYear')
+        .collection('crops')
+        .orderBy('sowingDate',
+            descending: true) // Order by sowingDate to get latest crop
+        .limit(1) // Limit to 1 to get the latest crop
+        .get();
+
+    CropData? cropData;
+    if (cropDocsSnapshot.docs.isNotEmpty &&
+        cropDocsSnapshot.docs.first.data() != null) {
+      // Check if document exists and has data
+      cropData = CropData.fromMap(cropDocsSnapshot.docs.first.data() as Map<
+          String,
+          dynamic>); // Cast to Map<String, dynamic> and use factory constructor
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+        elevation: 5,
+        backgroundColor: Colors.grey.shade50,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                cropData?.cropName ??
+                    'Farm ${farms.indexOf(farm) + 1}', // Display Crop Name from CropData or default Farm Name
+                style: GoogleFonts.quicksand(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF333333),
+                ),
+              ),
+              const SizedBox(height: 15),
+              RichText(
+                text: TextSpan(
+                  style: GoogleFonts.quicksand(
+                      fontSize: 16, color: Colors.black87, height: 1.4),
+                  children: [
+                    TextSpan(
+                      text: "Farm Area: ", // Updated label to Farm Area
+                      style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF555555)),
+                    ),
+                    TextSpan(text: "${_formatArea(farm.area, 'ha')}\n"),
+                    const TextSpan(text: "\n"),
+                    if (cropData != null) ...[
+                      // Conditionally show crop data if available
+                      TextSpan(
+                        text: "Crop Name: ",
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF555555)),
+                      ),
+                      TextSpan(text: "${cropData.cropName}\n"),
+                      const TextSpan(text: "\n"),
+                      TextSpan(
+                        text: "Sowing Date: ",
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF555555)),
+                      ),
+                      TextSpan(
+                          text:
+                              "${cropData.sowingDate.toLocal().toString().split(' ')[0]}\n"),
+                      const TextSpan(text: "\n"),
+                      TextSpan(
+                        text: "Fertility: ",
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF555555)),
+                      ),
+                      TextSpan(text: "${cropData.fertilityLevel}\n"),
+                      const TextSpan(text: "\n"),
+                      TextSpan(
+                        text: "Soil: ",
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF555555)),
+                      ),
+                      TextSpan(text: "${cropData.soilType}\n"),
+                      const TextSpan(text: "\n"),
+                      TextSpan(
+                        text: "Pesticide: ",
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF555555)),
+                      ),
+                      TextSpan(
+                          text: "${cropData.pesticideUsage ? 'Yes' : 'No'}\n"),
+                      const TextSpan(text: "\n"),
+                      TextSpan(
+                        text: "Seeds/Hectare: ",
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF555555)),
+                      ),
+                      TextSpan(text: "${cropData.seedsPerHectare}"),
+                    ] else ...[
+                      TextSpan(
+                        text: "Crop Data not available for this farm yet.",
+                        style: GoogleFonts.quicksand(
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade600),
+                      ),
+                    ]
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  Future<void> _addFarmMarker(
+    BuildContext context,
+    FarmPlot farm, {
+    String markerAsset = 'images/farmer.png',
+  }) async {
+    // Calculate the centroid from the farm's coordinates.
+    LatLng center = _calculateCentroid(farm.coordinates);
+
+    // Load the custom marker icon with reduced size.
+    BitmapDescriptor customIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(50, 60)),
+      markerAsset,
+    );
+
+    markers.add(
+      Marker(
+        markerId: MarkerId('farm_center_${farm.id}'),
+        position: center,
+        icon: customIcon,
+        // We use an empty infoWindow here since tapping will show our custom widget.
+        infoWindow: const InfoWindow(title: '', snippet: ''),
+        onTap: () {
+          // Access your provider (you might want to set listen: false)
+          final mapProvider =
+              Provider.of<MapDrawingProvider>(context, listen: false);
+          if (mapProvider.isBottomSheetOpen) {
+            // If the bottom sheet is open, do nothing.
+            return;
+          }
+          // Otherwise, show the custom info window.
+          _showCustomInfoWindow(context, farm);
+        },
+      ),
+    );
+  }
+
+
   LatLng _calculateCentroid(List<LatLng> points) {
     double totalLat = 0;
     double totalLng = 0;
@@ -857,10 +1151,6 @@ class MapDrawingProvider with ChangeNotifier {
     }
     return LatLng(totalLat / points.length, totalLng / points.length);
   }
-
-
-
-
 
   void addMarkerAndUpdatePolyline(BuildContext context, LatLng point) {
     if (currentTool != "marker") return;
@@ -910,6 +1200,7 @@ class MapDrawingProvider with ChangeNotifier {
     currentDragPoint = null;
     notifyListeners();
   }
+
   void clearCurrentFarm() {
     currentPolygonPoints.clear();
     currentPolylinePoints.clear();
@@ -923,6 +1214,7 @@ class MapDrawingProvider with ChangeNotifier {
     isDrawing = false;
     notifyListeners();
   }
+
   void _updatePolylines() {
     // Remove any existing temporary marker-drawing polyline(s)
     _tempPolylines.removeWhere(
@@ -962,8 +1254,6 @@ class MapDrawingProvider with ChangeNotifier {
     notifyListeners();
   }
 
-
-
   void setCurrentTool(String tool) {
     if (tool == "hand") {
       isDrawing = false;
@@ -975,6 +1265,7 @@ class MapDrawingProvider with ChangeNotifier {
     }
     notifyListeners();
   }
+
   void startDrawing(String tool, LatLng point) {
     isDrawing = true;
     currentTool = tool;
@@ -983,6 +1274,7 @@ class MapDrawingProvider with ChangeNotifier {
     if (tool == "marker") polylinePoints.clear();
     notifyListeners();
   }
+
   void updateDrawing(LatLng point) {
     currentDragPoint = point;
     switch (currentTool) {
@@ -1003,10 +1295,11 @@ class MapDrawingProvider with ChangeNotifier {
     }
     notifyListeners();
   }
+
   void finalizeDrawing(BuildContext context) {
     if ((currentTool == "rectangle" ||
-        currentTool == "freehand" ||
-        currentTool == "marker") &&
+            currentTool == "freehand" ||
+            currentTool == "marker") &&
         currentPolygonPoints.isNotEmpty) {
       _tempPolygons.add(
         Polygon(
@@ -1018,7 +1311,7 @@ class MapDrawingProvider with ChangeNotifier {
         ),
       );
 
-      _showFarmDetailsDialog(context);
+      register_farm(context);
     } else {
       currentPolygonPoints.clear();
       isDrawing = false;
@@ -1035,12 +1328,14 @@ class MapDrawingProvider with ChangeNotifier {
     );
     return (turf.area(turfPolygon) ?? 0.0).toDouble();
   }
+
   // New method to update the area unit
   void updateSelectedAreaUnit(String? newUnit) {
     if (newUnit == null || newUnit == _selectedAreaUnit) return;
     _selectedAreaUnit = newUnit;
     notifyListeners();
   }
+
   // Modified _formatArea function
   String _formatArea(double area, String unit) {
     switch (unit) {
@@ -1053,11 +1348,13 @@ class MapDrawingProvider with ChangeNotifier {
         return '${converted.toStringAsFixed(2)} Acres';
     }
   }
+
   void _resetToolSelection() {
     currentTool = "";
     _toolSelected = false;
     notifyListeners();
   }
+
   void selectFarm(FarmPlot farm) {
     selectedFarm = farm;
     farmNameController.text = farm.name;
@@ -1083,27 +1380,7 @@ class MapDrawingProvider with ChangeNotifier {
 
     notifyListeners();
   }
-  void closeFarmDetails() {
-    isFarmDetailsVisible = false;
-    notifyListeners();
-    Future.delayed(const Duration(milliseconds: 500), () {
-      selectedFarm = null;
-      notifyListeners();
-    });
-  }
-  Future<void> updateFarmName(String newName) async {
-    if (selectedFarm == null) return;
 
-    selectedFarm!.name = newName;
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser?.uid)
-        .collection('farms')
-        .doc(selectedFarm!.id)
-        .update({'name': newName});
-
-    notifyListeners();
-  }
   bool isMapInteractionAllowed() => !isFarmSelected && !_toolSelected;
   void placeMarker(LatLng point) {
     if (currentTool == "marker") {
@@ -1128,6 +1405,7 @@ class MapDrawingProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
   double _calculateDistance(LatLng p1, LatLng p2) {
     const radius = 6371e3;
     final dLat = _toRadians(p2.latitude - p1.latitude);
@@ -1139,6 +1417,7 @@ class MapDrawingProvider with ChangeNotifier {
             sin(dLng / 2);
     return radius * 2 * atan2(sqrt(a), sqrt(1 - a));
   }
+
   double _toRadians(double degree) => degree * pi / 180;
   List<LatLng> _getRectanglePoints(LatLng start, LatLng end) => [
         start,
@@ -1156,6 +1435,8 @@ class MapDrawingProvider with ChangeNotifier {
     isDrawing = false;
     notifyListeners();
   }
+
+  @override
   void dispose() {
     mapController?.dispose();
     super.dispose();
@@ -1177,11 +1458,119 @@ class _FarmDetailsRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         children: [
-          Text(title, style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: Colors.black87)),
+          Text(title,
+              style: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.w700, color: Colors.black87)),
           const SizedBox(width: 8),
           Text(value, style: GoogleFonts.quicksand(color: Colors.black87)),
         ],
       ),
     );
+  }
+}
+
+class FarmPlot {
+  final String id;
+  late final String name; // Farm Name
+  final double area;
+  final List<LatLng> coordinates;
+  final DateTime createdAt;
+  final String geoHash;
+
+  FarmPlot({
+    required this.id,
+    required this.name,
+    required this.area,
+    required this.coordinates,
+    required this.createdAt,
+    required this.geoHash,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'area': area,
+      'coordinates': coordinates
+          .map((latLng) => {'lat': latLng.latitude, 'lng': latLng.longitude})
+          .toList(),
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'geoHash': geoHash,
+    };
+  }
+
+  static Stream<List<FarmPlot>> loadFarms() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return Stream.value([]);
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('farms')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return FarmPlot(
+          id: data['id'] as String,
+          name: data['name'] as String,
+          area: (data['area'] as num).toDouble(),
+          coordinates: (data['coordinates'] as List)
+              .map((coord) => LatLng(
+                    (coord['lat'] as num).toDouble(),
+                    (coord['lng'] as num).toDouble(),
+                  ))
+              .toList(),
+          createdAt:
+              DateTime.fromMillisecondsSinceEpoch(data['createdAt'] as int),
+          geoHash: data['geoHash'] as String,
+        );
+      }).toList();
+    });
+  }
+}
+
+//CROP CLASS
+class CropData {
+  final String cropName;
+  final DateTime sowingDate;
+  final String fertilityLevel;
+  final String soilType;
+  final bool pesticideUsage;
+  final int seedsPerHectare;
+
+  CropData({
+    required this.cropName,
+    required this.sowingDate,
+    required this.fertilityLevel,
+    required this.soilType,
+    required this.pesticideUsage,
+    required this.seedsPerHectare,
+  });
+
+  factory CropData.fromMap(Map<String, dynamic> map) {
+    return CropData(
+      cropName: map['cropName'] ?? 'N/A', // Provide default value if null
+      sowingDate: map['sowingDate'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['sowingDate'] as int)
+          : DateTime.now(), // Default to now if null
+      fertilityLevel:
+          map['fertilityLevel'] ?? 'N/A', // Provide default value if null
+      soilType: map['soilType'] ?? 'N/A', // Provide default value if null
+      pesticideUsage:
+          map['pesticideUsage'] ?? false, // Provide default value if null
+      seedsPerHectare: map['seedsPerHectare']?.toInt() ??
+          0, // Provide default value if null and ensure it's int
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'cropName': cropName,
+      'sowingDate': sowingDate.millisecondsSinceEpoch,
+      'fertilityLevel': fertilityLevel,
+      'soilType': soilType,
+      'pesticideUsage': pesticideUsage,
+      'seedsPerHectare': seedsPerHectare,
+    };
   }
 }

@@ -8,7 +8,6 @@ import 'package:provider/provider.dart';
 import 'Constant/forget_password_provider.dart';
 import 'Constant/login_provider.dart';
 import 'Constant/splash_provider.dart';
-import 'Screens/dashboard.dart';
 import 'Screens/drawer.dart';
 import 'firebase_options.dart';
 

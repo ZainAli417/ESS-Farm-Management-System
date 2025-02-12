@@ -3,13 +3,12 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class TaskScreen extends StatefulWidget {
-  const TaskScreen({Key? key}) : super(key: key);
+  const TaskScreen({super.key});
   @override
   _TaskScreenState createState() => _TaskScreenState();
 }
@@ -77,6 +76,8 @@ class _TaskScreenState extends State<TaskScreen> {
       _currentPage = 0; // reset pagination on filter change
     });
   }
+
+
   final List<String> taskStatusesFilter = ['pending', 'in progress', 'completed']; // Filter options, include empty for "All"
   List<DocumentSnapshot> get _currentPageTasks {
     int startIndex = _currentPage * _tasksPerPage;
@@ -536,7 +537,7 @@ class _TaskScreenState extends State<TaskScreen> {
   void _showTaskDialog(BuildContext context, {DocumentSnapshot? taskDoc}) {
     final bool isEditing = taskDoc != null;
     final Map<String, dynamic> taskData =
-    isEditing ? taskDoc!.data() as Map<String, dynamic> : {};
+    isEditing ? taskDoc.data() as Map<String, dynamic> : {};
     final TextEditingController taskNameController =
     TextEditingController(text: taskData['taskName'] ?? '');
     final TextEditingController taskDescController =
@@ -706,7 +707,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                     }
                                   }
                                   if (matchingFarm != null) {
-                                    final data = matchingFarm!.data();
+                                    final data = matchingFarm.data();
                                     selectedFarmName = data['name'] ?? "Unnamed Farm";
                                   } else {
                                     selectedFarmName = "Unnamed Farm";
@@ -773,7 +774,7 @@ class _TaskScreenState extends State<TaskScreen> {
                                         .doc(user.uid)
                                         .collection('tasks');
                                     if (isEditing) {
-                                      await tasksCollection.doc(taskDoc!.id).update({
+                                      await tasksCollection.doc(taskDoc.id).update({
                                         'taskName': taskNameController.text,
                                         'taskDescription': taskDescController.text,
                                         'type': selectedType,
@@ -890,8 +891,7 @@ class TaskStatusDropdown extends StatefulWidget {
   final String taskId;
   final String initialStatus;
   const TaskStatusDropdown(
-      {Key? key, required this.taskId, required this.initialStatus})
-      : super(key: key);
+      {super.key, required this.taskId, required this.initialStatus});
 
   @override
   _TaskStatusDropdownState createState() => _TaskStatusDropdownState();

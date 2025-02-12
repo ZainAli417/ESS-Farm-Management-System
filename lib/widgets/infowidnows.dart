@@ -11,7 +11,7 @@ class CustomInfoWindow extends StatelessWidget {
   final String seedsPerHectare;
 
   const CustomInfoWindow({
-    Key? key,
+    super.key,
     required this.farmName,
     required this.area,
     required this.sowingDate,
@@ -19,7 +19,7 @@ class CustomInfoWindow extends StatelessWidget {
     required this.soilType,
     required this.pesticideUsage,
     required this.seedsPerHectare,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +64,7 @@ class CustomInfoWindow extends StatelessWidget {
                 TextSpan(text: 'Pesticide: ', style: const TextStyle(fontWeight: FontWeight.bold)),
                 TextSpan(text: '$pesticideUsage\n'),
                 TextSpan(text: 'Seeds/Hectare: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-                TextSpan(text: '$seedsPerHectare'),
+                TextSpan(text: seedsPerHectare),
               ],
             ),
           ),

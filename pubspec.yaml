@@ -13,6 +13,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   turf: ^0.0.10
   rxdart: ^0.28.0
+  smooth_page_indicator: ^1.2.0+3
+  lottie: ^3.3.1
   geolocator: ^13.0.2
   font_awesome_flutter: ^10.8.0
   google_maps_flutter: ^2.5.0
@@ -79,3 +81,4 @@ flutter:
 
   assets:
     - images/
+    - images/bot.json

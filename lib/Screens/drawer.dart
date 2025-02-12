@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:video_player/video_player.dart';
 import '../Constant/controller_weather.dart';
+import 'Farm Insights.dart';
 import 'Task Management.dart';
 import 'dashboard.dart';
 
@@ -22,7 +20,7 @@ class _DrawerNavbarState extends State<DrawerNavbar> with TickerProviderStateMix
   final List<Widget> _children = [
     const MapScreen(),
     TaskScreen(),
-    const Center(child: Text("Farm Insights Screen")),
+    FarmInsights(),
     const Center(child: Text("Account Settings Screen")),
     const Center(child: Text("Notifications Screen")),
     const Center(child: Text("Farm.AI Screen")),
