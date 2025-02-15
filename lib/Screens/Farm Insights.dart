@@ -82,8 +82,7 @@ class _FarmInsightsState extends State<FarmInsights> {
         'Respond with only a single number followed by "MT".';
 
     final url = Uri.parse('https://api.openai.com/v1/chat/completions');
-    const apiKey =
-        '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'; // Replace with your API key
+    const apiKey = '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'; // Replace with your API key
     final headers = {
       'Authorization': 'Bearer $apiKey',
       'Content-Type': 'application/json',

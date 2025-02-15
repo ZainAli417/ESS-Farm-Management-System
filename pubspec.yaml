@@ -47,6 +47,7 @@ dependencies:
   flutter_joystick: ^0.2.1
   location: ^8.0.0
   xml: ^6.1.0
+  sidebarx: ^0.17.1
   flutter_asset_manager: ^0.0.2
   google_fonts: any
   percent_indicator: ^4.2.2
@@ -65,6 +66,7 @@ dependencies:
   flutter_svg: ^2.0.17
   flutter_side_menu: ^0.5.41
   google_sign_in: ^6.2.2
+  collapsible_sidebar: ^2.0.7
 
 
 

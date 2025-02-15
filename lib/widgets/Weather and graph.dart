@@ -6,9 +6,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:timelines_plus/timelines_plus.dart';
 
 import '../Constant/controller_weather.dart';
+import '../Screens/Task Management.dart';
 
 class WeatherAndTasksPanel extends StatefulWidget {
   const WeatherAndTasksPanel({super.key});
@@ -181,7 +183,7 @@ class _WeatherAndTasksPanelState extends State<WeatherAndTasksPanel> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color:  const Color(0xFF4E342E).withOpacity(0.8), // Reduced opacity for location container
+                        color:  const Color(0xFF2E2E48).withOpacity(0.8), // Reduced opacity for location container
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(
@@ -210,7 +212,7 @@ class _WeatherAndTasksPanelState extends State<WeatherAndTasksPanel> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: _isCelsius ? const Color(0xFF4E342E) : Colors.grey.shade200,
+                              color: _isCelsius ? const Color(0xFF2E2E48) : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(5),
                             ),
                             child: Text(
@@ -229,7 +231,7 @@ class _WeatherAndTasksPanelState extends State<WeatherAndTasksPanel> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: !_isCelsius ? const Color(0xFF4E342E) : Colors.grey.shade200,
+                              color: !_isCelsius ? const Color(0xFF2E2E48) : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(5),
                             ),
                             child: Text(
@@ -321,37 +323,59 @@ class _WeatherAndTasksPanelState extends State<WeatherAndTasksPanel> {
 
         //LEVE THIS AS IT IS DONOT REMOVE MY COMMENT DO NOT TOUCH IT
         const SizedBox(height: 12),
+     /*
         Expanded(
           child: Card(
-
-            color: Colors.grey.shade100,
+            elevation: 4,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            elevation: 4,
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity, // Take full width
-                  padding: const EdgeInsets.all(16), // Adjust padding as needed
-                  decoration: BoxDecoration(
-                    color: Color(0xFF4E342E),// Brown color
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
-                    ),
-                  ),
-                  child:  Center( // Or any other content you want here
-                    child: Text(
-                      'Task TimeLine', // Placeholder text, replace with your actual data
-                      style: GoogleFonts.quicksand(color: Colors.white,fontWeight: FontWeight.w700,fontSize: 16),
-                    ),
-                  ),
+            // Wrap the Card's content with a Container that has the gradient decoration
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFF7F7F7), Colors.white70],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                Expanded(
-                  child: _farmIds.isEmpty
-                      ? const Center(child: Text("No farms with tasks yet"))
-                      : Stack(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300, width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity, // Take full width
+                    padding: const EdgeInsets.all(16), // Adjust padding as needed
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2E2E48), // Brown color
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Task TimeLine', // Placeholder text, replace with your actual data
+                        style: GoogleFonts.quicksand(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: _farmIds.isEmpty
+                        ? const Center(child: Text("No farms with tasks yet"))
+                        : Stack(
                       alignment: Alignment.bottomCenter,
                       children: [
                         PageView.builder(
@@ -364,49 +388,48 @@ class _WeatherAndTasksPanelState extends State<WeatherAndTasksPanel> {
                             return Column(
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.only(
-                                      top: 5.0, bottom: 5.0),
-                                  child: Text(farmName,
-                                      style: GoogleFonts.quicksand(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20,
-                                          color: Colors.black87)), // Farm Name Title
+                                  padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+                                  child: Text(
+                                    farmName,
+                                    style: GoogleFonts.quicksand(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                      color: Colors.black87,
+                                    ), // Farm Name Title
+                                  ),
                                 ),
                                 Expanded(
                                   child: StreamBuilder<QuerySnapshot>(
                                     stream: FirebaseFirestore.instance
                                         .collection('users')
-                                        .doc(FirebaseAuth
-                                        .instance.currentUser!.uid)
+                                        .doc(FirebaseAuth.instance.currentUser!.uid)
                                         .collection('tasks')
                                         .where('farmId', isEqualTo: farmId)
                                         .snapshots(), // Removed orderBy
                                     builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return const Center(
-                                            child: CircularProgressIndicator());
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return const Center(child: CircularProgressIndicator());
                                       }
                                       if (snapshot.hasError) {
                                         return Center(
-                                            child: Text('Error: ${snapshot.error}',
-                                                style: GoogleFonts.quicksand(
-                                                    color: Colors.red)));
+                                            child: Text(
+                                              'Error: ${snapshot.error}',
+                                              style: GoogleFonts.quicksand(color: Colors.red),
+                                            ));
                                       }
-                                      if (!snapshot.hasData ||
-                                          snapshot.data!.docs.isEmpty) {
+                                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                                         return Center(
                                             child: Text(
-                                                "No tasks for Farm ID: $farmName",
-                                                style: GoogleFonts.quicksand(
-                                                    fontWeight: FontWeight.w700,
-                                                    color: Colors.grey.shade700)));
+                                              "No tasks for Farm ID: $farmName",
+                                              style: GoogleFonts.quicksand(
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.grey.shade700),
+                                            ));
                                       }
 
                                       List<Map<String, dynamic>> farmTasks = [];
                                       for (var doc in snapshot.data!.docs) {
-                                        farmTasks.add(
-                                            doc.data() as Map<String, dynamic>);
+                                        farmTasks.add(doc.data() as Map<String, dynamic>);
                                       }
                                       farmTasks.sort((a, b) {
                                         int dueDateA = a['dueDate'] ?? 0;
@@ -419,8 +442,7 @@ class _WeatherAndTasksPanelState extends State<WeatherAndTasksPanel> {
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 4, horizontal: 4),
                                         children: farmTasks
-                                            .map((taskData) =>
-                                            _buildTimelineTile(taskData))
+                                            .map((taskData) => _buildTimelineTile(taskData))
                                             .toList(),
                                       );
                                     },
@@ -451,10 +473,226 @@ class _WeatherAndTasksPanelState extends State<WeatherAndTasksPanel> {
                             },
                           ),
                         ),
-                      ]),
-                ),
-                // Add this Container for the rounded bottom section
-              ],
+                      ],
+                    ),
+                  ),
+                  // Add this Container for the rounded bottom section if needed
+                ],
+              ),
+            ),
+          ),
+        ),
+
+      */
+        Expanded(
+          flex: 1,
+          child: Container(
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFF8F3F3), Colors.white70],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                )
+              ]
+            ),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(FirebaseAuth.instance.currentUser!.uid)
+                  .collection('tasks')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                      child: Text(
+                        'Error: ${snapshot.error}',
+                        style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.red),
+                      ));
+                }
+
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData ||
+                    snapshot.data!.docs.isEmpty) {
+                  return Center(
+                      child: Text("No tasks yet",
+                          style: GoogleFonts.quicksand(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.grey.shade700)));
+                }
+
+                // Process task data for chart
+                // We want to display: Pending, Progress, Completed.
+                Map<String, int> taskStatusCounts = {
+                  'Pending': 0,
+                  'Progress': 0,
+                  'Completed': 0,
+                };
+
+                for (var doc in snapshot.data!.docs) {
+                  var taskData =
+                  doc.data() as Map<String, dynamic>;
+                  String status = (taskData['status'] as String?)
+                      ?.toLowerCase() ??
+                      'pending';
+                  String displayStatus = (status == 'in progress')
+                      ? 'Progress'
+                      : status[0].toUpperCase() +
+                      status.substring(1);
+                  if (taskStatusCounts
+                      .containsKey(displayStatus)) {
+                    taskStatusCounts[displayStatus] =
+                        (taskStatusCounts[displayStatus] ?? 0) +
+                            1;
+                  } else {
+                    taskStatusCounts['Pending'] =
+                        (taskStatusCounts['Pending'] ?? 0) + 1;
+                  }
+                }
+
+// Dynamically compute total tasks available
+                int totalTasks = taskStatusCounts['Pending']! +
+                    taskStatusCounts['Progress']! +
+                    taskStatusCounts['Completed']!;
+                // Build the chart using three separate series so that each status shows in the legend.
+                return SfCartesianChart(
+                  legend: Legend(
+                    isVisible: true,
+                    position: LegendPosition.top,
+                    textStyle: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87),
+                  ),
+                  plotAreaBorderColor: Colors.transparent,
+                  title: ChartTitle(
+                    text: 'Task Progress',
+                    textStyle: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87),
+                  ),
+                  primaryXAxis: CategoryAxis(
+                    majorGridLines:
+                    const MajorGridLines(width: 0),
+                    axisLine: const AxisLine(
+                        width: 2, color: Colors.black54),
+                    labelStyle: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey.shade800),
+                  ),
+                  primaryYAxis: NumericAxis(
+                    minimum: 0,
+                    maximum: totalTasks
+                        .toDouble(), // Dynamic maximum equals total tasks
+                    interval: 1, // Each label increments by 1
+                    majorGridLines:
+                    const MajorGridLines(width: 0),
+                    numberFormat: NumberFormat(
+                        "0"), // Formats numbers as whole numbers
+                    axisLine: const AxisLine(
+                        width: 2, color: Colors.black54),
+                    labelStyle: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey.shade800),
+                  ),
+                  series: <CartesianSeries<TaskProgressData,
+                      String>>[
+                    // Series for Pending tasks
+                    ColumnSeries<TaskProgressData, String>(
+                      dataSource: [
+                        TaskProgressData(
+                          taskStatusCounts['Pending']!,
+                          'Pending',
+                          chartColor: Colors.red.shade700,
+                        )
+                      ],
+                      color: Colors.red
+                          .shade700, // <--- Explicit series color for the legend
+                      xValueMapper: (TaskProgressData data, _) =>
+                      data.status,
+                      yValueMapper: (TaskProgressData data, _) =>
+                      data.taskCount,
+                      name: 'Pending',
+                      dataLabelSettings: const DataLabelSettings(
+                        isVisible: true,
+                        labelAlignment:
+                        ChartDataLabelAlignment.top,
+                      ),
+                      width: 0.7,
+                      pointColorMapper:
+                          (TaskProgressData data, _) =>
+                      data.chartColor,
+                    ),
+                    // Series for Progress tasks
+                    ColumnSeries<TaskProgressData, String>(
+                      dataSource: [
+                        TaskProgressData(
+                          taskStatusCounts['Progress']!,
+                          'Progress',
+                          chartColor: Colors.amber.shade700,
+                        )
+                      ],
+                      color: Colors.amber
+                          .shade700, // <--- Explicit series color for the legend
+                      xValueMapper: (TaskProgressData data, _) =>
+                      data.status,
+                      yValueMapper: (TaskProgressData data, _) =>
+                      data.taskCount,
+                      name: 'Progress',
+                      dataLabelSettings: const DataLabelSettings(
+                        isVisible: true,
+                        labelAlignment:
+                        ChartDataLabelAlignment.top,
+                      ),
+                      width: 0.7,
+                      pointColorMapper:
+                          (TaskProgressData data, _) =>
+                      data.chartColor,
+                    ),
+                    // Series for Completed tasks
+                    ColumnSeries<TaskProgressData, String>(
+                      dataSource: [
+                        TaskProgressData(
+                          taskStatusCounts['Completed']!,
+                          'Completed',
+                          chartColor: Colors.green.shade700,
+                        )
+                      ],
+                      color: Colors.green
+                          .shade700, // <--- Explicit series color for the legend
+                      xValueMapper: (TaskProgressData data, _) =>
+                      data.status,
+                      yValueMapper: (TaskProgressData data, _) =>
+                      data.taskCount,
+                      name: 'Completed',
+                      dataLabelSettings: const DataLabelSettings(
+                        isVisible: true,
+                        labelAlignment:
+                        ChartDataLabelAlignment.top,
+                      ),
+                      width: 0.7,
+                      pointColorMapper:
+                          (TaskProgressData data, _) =>
+                      data.chartColor,
+                    ),
+                  ],
+                  tooltipBehavior: TooltipBehavior(enable: true),
+                );
+              },
             ),
           ),
         ),

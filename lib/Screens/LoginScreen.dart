@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen>
         Future.delayed(Durations.medium4);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const DrawerNavbar()),
+          MaterialPageRoute(builder: (context) =>  DrawerWidget()),
         );
       }
     } catch (e) {

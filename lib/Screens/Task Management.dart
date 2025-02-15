@@ -7,11 +7,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+import 'drawer.dart';
+
 class TaskScreen extends StatefulWidget {
   const TaskScreen({super.key});
   @override
   _TaskScreenState createState() => _TaskScreenState();
 }
+
 class TaskProgressData {
   final int taskCount;
   final String status;
@@ -28,12 +31,18 @@ class _TaskScreenState extends State<TaskScreen> {
   // Added pagination variables
   int _currentPage = 0;
   final int _tasksPerPage = 25;
+  static const primaryColor = Color(0xFF685BFF);
+  static const canvasColor = Color(0xFF2E2E48);
+  static const scaffoldBackgroundColor = Color(0xFF464667);
+  static const accentCanvasColor = Color(0xFF3E3E61);
+  final actionColor = const Color(0xFF5F5FA7).withOpacity(0.6);
 
   @override
   void initState() {
     super.initState();
     _loadTasks();
   }
+
   String? selectedStatusFilter; // Variable to hold selected status filter
 
   Future<void> _loadTasks() async {
@@ -60,25 +69,34 @@ class _TaskScreenState extends State<TaskScreen> {
 
   void _filterTasks() {
     String query = _searchController.text.toLowerCase();
-    String statusFilter = selectedStatusFilter ?? ''; // Get selected status filter
+    String statusFilter =
+        selectedStatusFilter ?? ''; // Get selected status filter
     setState(() {
       filteredTasks = allTasks.where((task) {
         final taskData = task.data() as Map<String, dynamic>;
         final taskName = (taskData['taskName'] as String?)?.toLowerCase() ?? '';
-        final taskDescription = (taskData['taskDescription'] as String?)?.toLowerCase() ?? '';
+        final taskDescription =
+            (taskData['taskDescription'] as String?)?.toLowerCase() ?? '';
         final taskStatus = (taskData['status'] as String?)?.toLowerCase() ?? '';
 
-        bool textMatch = taskName.contains(query) || taskDescription.contains(query);
-        bool statusMatch = statusFilter.isEmpty || taskStatus == statusFilter.toLowerCase(); // Filter by status if selected
+        bool textMatch =
+            taskName.contains(query) || taskDescription.contains(query);
+        bool statusMatch = statusFilter.isEmpty ||
+            taskStatus ==
+                statusFilter.toLowerCase(); // Filter by status if selected
 
-        return textMatch && statusMatch; // Task must match both text and status filters
+        return textMatch &&
+            statusMatch; // Task must match both text and status filters
       }).toList();
       _currentPage = 0; // reset pagination on filter change
     });
   }
 
-
-  final List<String> taskStatusesFilter = ['pending', 'in progress', 'completed']; // Filter options, include empty for "All"
+  final List<String> taskStatusesFilter = [
+    'pending',
+    'in progress',
+    'completed'
+  ]; // Filter options, include empty for "All"
   List<DocumentSnapshot> get _currentPageTasks {
     int startIndex = _currentPage * _tasksPerPage;
     int endIndex = startIndex + _tasksPerPage;
@@ -87,18 +105,32 @@ class _TaskScreenState extends State<TaskScreen> {
     }
     return filteredTasks.sublist(startIndex, endIndex);
   }
+
   Widget buildStatusFilterDropdown() {
     return DropdownButtonFormField<String>(
       value: selectedStatusFilter,
       decoration: InputDecoration(
         labelText: "All Tasks",
-        labelStyle: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
+        labelStyle: GoogleFonts.quicksand(
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+            color: Colors.white),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.0),
+            borderSide: BorderSide(color: Colors.white, width: 2)),
       ),
+      // This style applies to the selected dropdown item
+      style: GoogleFonts.quicksand(
+          fontWeight: FontWeight.w700, color: Colors.white),
+      // Optionally, you can set a contrasting background for the dropdown menu
       items: taskStatusesFilter.map((status) {
         return DropdownMenuItem<String>(
           value: status,
-          child: Text(status.isEmpty ? 'All Tasks' : status, style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
+          child: Text(
+            status.isEmpty ? 'All Tasks' : status,
+            style: GoogleFonts.quicksand(
+                fontWeight: FontWeight.w700, color: Colors.white),
+          ),
         );
       }).toList(),
       onChanged: (val) {
@@ -109,6 +141,7 @@ class _TaskScreenState extends State<TaskScreen> {
       },
     );
   }
+
   Widget buildPaginationControls() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20.0),
@@ -118,15 +151,17 @@ class _TaskScreenState extends State<TaskScreen> {
           ElevatedButton(
             onPressed: _currentPage > 0
                 ? () {
-              setState(() {
-                _currentPage--;
-              });
-            }
+                    setState(() {
+                      _currentPage--;
+                    });
+                  }
                 : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _currentPage > 0 ? Colors.brown.shade700 : Colors.grey.shade400,
+              backgroundColor:
+                  _currentPage > 0 ? Color(0xFF2E2E48) : Colors.grey.shade400,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             child: const Icon(Icons.arrow_back),
           ),
@@ -134,21 +169,27 @@ class _TaskScreenState extends State<TaskScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 5.0),
             child: Text(
               'Page ${_currentPage + 1} of ${((filteredTasks.length - 1) ~/ _tasksPerPage) + 1}',
-              style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, fontSize: 16),
+              style: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.w700, fontSize: 16),
             ),
           ),
           ElevatedButton(
-            onPressed: ((_currentPage + 1) * _tasksPerPage < filteredTasks.length)
-                ? () {
-              setState(() {
-                _currentPage++;
-              });
-            }
-                : null,
+            onPressed:
+                ((_currentPage + 1) * _tasksPerPage < filteredTasks.length)
+                    ? () {
+                        setState(() {
+                          _currentPage++;
+                        });
+                      }
+                    : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: ((_currentPage + 1) * _tasksPerPage < filteredTasks.length) ? Colors.brown.shade700 : Colors.grey.shade400,
+              backgroundColor:
+                  ((_currentPage + 1) * _tasksPerPage < filteredTasks.length)
+                      ? Color(0xFF2E2E48)
+                      : Colors.grey.shade400,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             child: const Icon(Icons.arrow_forward),
           ),
@@ -156,7 +197,6 @@ class _TaskScreenState extends State<TaskScreen> {
       ),
     );
   }
-
 
   Widget _buildTableCell(String text, {bool isHeader = false}) {
     return Padding(
@@ -179,7 +219,7 @@ class _TaskScreenState extends State<TaskScreen> {
     // Header row
     rows.add(
       TableRow(
-        decoration: BoxDecoration(color: Colors.brown.shade700),
+        decoration: BoxDecoration(color: Color(0xFF2E2E48)),
         children: [
           _buildTableCell('Farm-Id', isHeader: true),
           _buildTableCell('Crop Name', isHeader: true),
@@ -198,7 +238,8 @@ class _TaskScreenState extends State<TaskScreen> {
       taskData['id'] = doc.id;
       String dueDateStr = "";
       if (taskData['dueDate'] != null) {
-        DateTime dueDate = DateTime.fromMillisecondsSinceEpoch(taskData['dueDate']);
+        DateTime dueDate =
+            DateTime.fromMillisecondsSinceEpoch(taskData['dueDate']);
         dueDateStr = "${dueDate.toLocal()}".split(' ')[0];
       }
       rows.add(
@@ -223,10 +264,12 @@ class _TaskScreenState extends State<TaskScreen> {
                   ElevatedButton.icon(
                     onPressed: () => _showTaskDialog(context, taskDoc: doc),
                     icon: Icon(Icons.edit, color: Colors.white),
-                    label: Text('Edit', style: GoogleFonts.quicksand(color: Colors.white)),
+                    label: Text('Edit',
+                        style: GoogleFonts.quicksand(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade700,
-                      padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -240,10 +283,12 @@ class _TaskScreenState extends State<TaskScreen> {
                           taskData['id']);
                     },
                     icon: Icon(Icons.delete, color: Colors.white),
-                    label: Text('Delete', style: GoogleFonts.quicksand(color: Colors.white)),
+                    label: Text('Delete',
+                        style: GoogleFonts.quicksand(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade700,
-                      padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
                     ),
                   ),
                 ],
@@ -258,11 +303,15 @@ class _TaskScreenState extends State<TaskScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
       child: ConstrainedBox(
-        constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width),
-        child: Container( // <-- Container for rounded corners
+        constraints:
+            BoxConstraints(minWidth: MediaQuery.of(context).size.width),
+        child: Container(
+          // <-- Container for rounded corners
 
           child: ClipRRect(
-            borderRadius: BorderRadius.only(topRight: Radius.circular(25.0), topLeft: Radius.circular(25.0)),
+            borderRadius: BorderRadius.only(
+                topRight: Radius.circular(15.0),
+                topLeft: Radius.circular(15.0)),
             child: Table(
               columnWidths: {
                 0: const FlexColumnWidth(1.5),
@@ -273,7 +322,9 @@ class _TaskScreenState extends State<TaskScreen> {
                 5: const FlexColumnWidth(1.5),
                 6: const FixedColumnWidth(105),
               },
-              border: TableBorder.all(color: Colors.black, width: 1), // <-- Use TableBorder for Table itself
+              border: TableBorder.all(
+                  color: Colors.black,
+                  width: 1), // <-- Use TableBorder for Table itself
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               children: rows,
             ),
@@ -282,242 +333,110 @@ class _TaskScreenState extends State<TaskScreen> {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Colors.grey.shade100,
+        color: scaffoldBackgroundColor,
         padding: const EdgeInsets.all(20.0),
-        child: Row(
+        child: Column(
           children: [
+            // Search and Filter widgets outside the table container
+            Padding(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
+              child: Row(
+                mainAxisAlignment:
+                MainAxisAlignment.spaceBetween, // Row for Search and Filter
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                      decoration: InputDecoration(
+                        labelText: "Search by Task Name/Description",
+                        labelStyle:
+                        GoogleFonts.quicksand(fontWeight: FontWeight.w700,color: Colors.white,fontSize: 14),
+                        prefixIcon: const Icon(Icons.search,color: Colors.white,),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white,width: 2),
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        _filterTasks();
+                      },
+                    ),
+                  ),
+                  const SizedBox(
+                      width: 15), // Spacing between search and filter
+                  SizedBox(
+                    width: 200, // Adjust width as needed
+                    child: buildStatusFilterDropdown(),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20,),
+            // Full width container for Task Table
             Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 20.0),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFF7F7F7), Colors.white70],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  border:
+                  Border.all(color: Colors.grey.shade300, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ],
+                ),
                 child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
-                      child: Row( // Row for Search and Filter
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _searchController,
-                              style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                              decoration: InputDecoration(
-                                labelText: "Search by Task Name/Description",
-                                labelStyle: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                                prefixIcon: const Icon(Icons.search),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.0)),
-                              ),
-                              onChanged: (value) {
-                                _filterTasks();
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 15), // Spacing between search and filter
-                          SizedBox(
-                            width: 200, // Adjust width as needed
-                            child: buildStatusFilterDropdown(),
-                          ),
-                        ],
-                      ),
-                    ),
                     Expanded(
                       child: _isLoadingTasks
                           ? const Center(child: CircularProgressIndicator())
                           : filteredTasks.isEmpty
                           ? Center(
-                          child: Text(
-                              "No tasks available. Click '+' to add a new task.",
-                              style: GoogleFonts.quicksand(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 18,
-                                  color: Colors.grey.shade600)))
+                        child: Text(
+                          "No tasks available. Click '+' to add a new task.",
+                          style: GoogleFonts.quicksand(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 18,
+                              color: Colors.grey.shade600),
+                        ),
+                      )
                           : Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment:
+                        CrossAxisAlignment.center,
                         children: [
+                         Padding(padding: const EdgeInsets.all(10.0),
+                          child:
                           Expanded(
                             child: SingleChildScrollView(
                               scrollDirection: Axis.vertical,
                               child: _buildTaskTable(context),
                             ),
                           ),
+                         ),
                           buildPaginationControls(), // Using the new pagination controls
                         ],
                       ),
                     ),
+/*
+
+
+                       */
                   ],
-                ),
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Container(
-                padding: const EdgeInsets.all(20.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade300,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(FirebaseAuth.instance.currentUser!.uid)
-                      .collection('tasks')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(
-                          child: Text(
-                            'Error: ${snapshot.error}',
-                            style: GoogleFonts.quicksand(
-                                fontWeight: FontWeight.w700, color: Colors.red),
-                          ));
-                    }
-
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return Center(
-                          child: Text("No tasks yet",
-                              style: GoogleFonts.quicksand(
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.grey.shade700)));
-                    }
-
-                    // Process task data for chart
-                    // We want to display: Pending, Progress, Completed.
-                    Map<String, int> taskStatusCounts = {
-                      'Pending': 0,
-                      'Progress': 0,
-                      'Completed': 0,
-                    };
-
-                    for (var doc in snapshot.data!.docs) {
-                      var taskData = doc.data() as Map<String, dynamic>;
-                      String status = (taskData['status'] as String?)?.toLowerCase() ?? 'pending';
-                      String displayStatus = (status == 'in progress')
-                          ? 'Progress'
-                          : status[0].toUpperCase() + status.substring(1);
-                      if (taskStatusCounts.containsKey(displayStatus)) {
-                        taskStatusCounts[displayStatus] = (taskStatusCounts[displayStatus] ?? 0) + 1;
-                      } else {
-                        taskStatusCounts['Pending'] = (taskStatusCounts['Pending'] ?? 0) + 1;
-                      }
-                    }
-
-// Dynamically compute total tasks available
-                    int totalTasks = taskStatusCounts['Pending']! +
-                        taskStatusCounts['Progress']! +
-                        taskStatusCounts['Completed']!;
-                    // Build the chart using three separate series so that each status shows in the legend.
-                    return SfCartesianChart(
-                      legend: Legend(
-                        isVisible: true,
-                        position: LegendPosition.top,
-                        textStyle: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w700, color: Colors.black87),
-                      ),
-                      plotAreaBorderColor: Colors.transparent,
-                      title: ChartTitle(
-                        text: 'Task Progress',
-                        textStyle: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.bold, color: Colors.black87),
-                      ),
-                      primaryXAxis: CategoryAxis(
-                        majorGridLines: const MajorGridLines(width: 0),
-                        axisLine: const AxisLine(width: 2, color: Colors.black54),
-                        labelStyle: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w700, color: Colors.grey.shade800),
-                      ),
-                      primaryYAxis: NumericAxis(
-                        minimum: 0,
-                        maximum: totalTasks.toDouble(), // Dynamic maximum equals total tasks
-                        interval: 1, // Each label increments by 1
-                        majorGridLines: const MajorGridLines(width: 0),
-                        numberFormat: NumberFormat("0"), // Formats numbers as whole numbers
-                        axisLine: const AxisLine(width: 2, color: Colors.black54),
-                        labelStyle: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w700, color: Colors.grey.shade800),
-                      ),
-                      series: <CartesianSeries<TaskProgressData, String>>[
-                        // Series for Pending tasks
-                        ColumnSeries<TaskProgressData, String>(
-                          dataSource: [
-                            TaskProgressData(
-                              taskStatusCounts['Pending']!,
-                              'Pending',
-                              chartColor: Colors.red.shade700,
-                            )
-                          ],
-                          color: Colors.red.shade700, // <--- Explicit series color for the legend
-                          xValueMapper: (TaskProgressData data, _) => data.status,
-                          yValueMapper: (TaskProgressData data, _) => data.taskCount,
-                          name: 'Pending',
-                          dataLabelSettings: const DataLabelSettings(
-                            isVisible: true,
-                            labelAlignment: ChartDataLabelAlignment.top,
-                          ),
-                          width: 0.7,
-                          pointColorMapper: (TaskProgressData data, _) => data.chartColor,
-
-                        ),
-                        // Series for Progress tasks
-                        ColumnSeries<TaskProgressData, String>(
-                          dataSource: [
-                            TaskProgressData(
-                              taskStatusCounts['Progress']!,
-                              'Progress',
-                              chartColor: Colors.amber.shade700,
-                            )
-                          ],
-                          color: Colors.amber.shade700, // <--- Explicit series color for the legend
-                          xValueMapper: (TaskProgressData data, _) => data.status,
-                          yValueMapper: (TaskProgressData data, _) => data.taskCount,
-                          name: 'Progress',
-                          dataLabelSettings: const DataLabelSettings(
-                            isVisible: true,
-                            labelAlignment: ChartDataLabelAlignment.top,
-                          ),
-                          width: 0.7,
-                          pointColorMapper: (TaskProgressData data, _) => data.chartColor,
-
-                        ),
-                        // Series for Completed tasks
-                        ColumnSeries<TaskProgressData, String>(
-                          dataSource: [
-                            TaskProgressData(
-                              taskStatusCounts['Completed']!,
-                              'Completed',
-                              chartColor: Colors.green.shade700,
-                            )
-                          ],
-                          color: Colors.green.shade700, // <--- Explicit series color for the legend
-                          xValueMapper: (TaskProgressData data, _) => data.status,
-                          yValueMapper: (TaskProgressData data, _) => data.taskCount,
-                          name: 'Completed',
-                          dataLabelSettings: const DataLabelSettings(
-                            isVisible: true,
-                            labelAlignment: ChartDataLabelAlignment.top,
-                          ),
-                          width: 0.7,
-                          pointColorMapper: (TaskProgressData data, _) => data.chartColor,
-
-                        ),
-                      ],
-
-                      tooltipBehavior: TooltipBehavior(enable: true),
-                    );
-                  },
                 ),
               ),
             ),
@@ -525,15 +444,15 @@ class _TaskScreenState extends State<TaskScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.brown.shade700,
+        backgroundColor: const Color(0xFF2E2E48),
         onPressed: () => _showTaskDialog(context),
         tooltip: 'Add New Task',
         elevation: 5,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
-
   }
+
   void _showTaskDialog(BuildContext context, {DocumentSnapshot? taskDoc}) {
     final bool isEditing = taskDoc != null;
     final Map<String, dynamic> taskData =
@@ -554,20 +473,26 @@ class _TaskScreenState extends State<TaskScreen> {
     final List<String> taskStatuses = ['pending', 'in progress', 'completed'];
 
     showModalBottomSheet(
-      isScrollControlled: true, // Allows the bottom sheet to take up full screen height if needed
+      isScrollControlled:
+      true, // Allows the bottom sheet to take up full screen height if needed
       context: context,
-      backgroundColor: Colors.transparent, // Make background transparent to see blur
+      backgroundColor:
+      Colors.transparent, // Make background transparent to see blur
       builder: (BuildContext context) {
-        return BackdropFilter( // To blur the background
+        return BackdropFilter(
+          // To blur the background
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: StatefulBuilder(builder: (context, setState) {
             return Container(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust padding when keyboard is visible
+                bottom: MediaQuery.of(context)
+                    .viewInsets
+                    .bottom, // Adjust padding when keyboard is visible
               ),
               decoration: BoxDecoration(
                 color: Colors.white, // Background color for bottom sheet
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(25.0)),
+                borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(25.0)),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -579,7 +504,8 @@ class _TaskScreenState extends State<TaskScreen> {
                         Text(
                           isEditing ? "Edit Task" : "Add New Task",
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, fontSize: 28),
+                          style: GoogleFonts.quicksand(
+                              fontWeight: FontWeight.w700, fontSize: 28),
                         ),
                         const SizedBox(height: 24),
                         // Task Name Field
@@ -587,8 +513,10 @@ class _TaskScreenState extends State<TaskScreen> {
                           controller: taskNameController,
                           decoration: InputDecoration(
                             labelText: "Task Name*",
-                            labelStyle: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                            labelStyle:
+                            GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12.0)),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -598,8 +526,10 @@ class _TaskScreenState extends State<TaskScreen> {
                           maxLines: 3,
                           decoration: InputDecoration(
                             labelText: "Task Description*",
-                            labelStyle: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                            labelStyle:
+                            GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12.0)),
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -613,15 +543,36 @@ class _TaskScreenState extends State<TaskScreen> {
                                 enableFeedback: true,
                                 isDense: true,
                                 value: selectedType,
+                                dropdownColor: Colors.black,
                                 decoration: InputDecoration(
                                   labelText: "Type of Task*",
-                                  labelStyle: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                                  labelStyle: GoogleFonts.quicksand(
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12.0)),
                                 ),
+                                style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black),
+                                // This builder ensures that after selection, the text displays in black
+                                selectedItemBuilder: (BuildContext context) {
+                                  return taskTypes.map((type) {
+                                    return Text(
+                                      type,
+                                      style: GoogleFonts.quicksand(
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black),
+                                    );
+                                  }).toList();
+                                },
                                 items: taskTypes.map((type) {
                                   return DropdownMenuItem<String>(
                                     value: type,
-                                    child: Text(type, style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
+                                    child: Text(type,
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white)),
                                   );
                                 }).toList(),
                                 onChanged: (val) {
@@ -637,9 +588,11 @@ class _TaskScreenState extends State<TaskScreen> {
                                 readOnly: true,
                                 decoration: InputDecoration(
                                   labelText: "Due Date*",
-                                  labelStyle: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                                  labelStyle: GoogleFonts.quicksand(
+                                      fontWeight: FontWeight.w700),
                                   suffixIcon: const Icon(Icons.calendar_today),
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12.0)),
                                 ),
                                 onTap: () async {
                                   final picked = await showDatePicker(
@@ -655,7 +608,9 @@ class _TaskScreenState extends State<TaskScreen> {
                                   }
                                 },
                                 controller: TextEditingController(
-                                  text: dueDate != null ? "${dueDate!.toLocal()}".split(' ')[0] : "",
+                                  text: dueDate != null
+                                      ? "${dueDate!.toLocal()}".split(' ')[0]
+                                      : "",
                                 ),
                               ),
                             ),
@@ -671,7 +626,8 @@ class _TaskScreenState extends State<TaskScreen> {
                               .get(),
                           builder: (context, snapshot) {
                             if (!snapshot.hasData) {
-                              return const Center(child: CircularProgressIndicator());
+                              return const Center(
+                                  child: CircularProgressIndicator());
                             }
                             final farmsData = snapshot.data!.docs;
                             return DropdownButtonFormField<String>(
@@ -681,25 +637,48 @@ class _TaskScreenState extends State<TaskScreen> {
                               isDense: true,
                               value: selectedFarmId,
                               isExpanded: true,
+                              dropdownColor: Colors.black,
                               decoration: InputDecoration(
-                                labelText: "Choose Crop for which Task is intended to*",
-                                labelStyle: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                                labelText:
+                                "Choose Crop for which Task is intended to*",
+                                labelStyle: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0)),
                               ),
+                              style: GoogleFonts.quicksand(
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.black),
+                              // Render selected farm value in black
+                              selectedItemBuilder: (BuildContext context) {
+                                return farmsData.map((farmDoc) {
+                                  final data = farmDoc.data();
+                                  return Text(
+                                    data['name'] ?? "Unnamed Farm",
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black),
+                                  );
+                                }).toList();
+                              },
                               items: farmsData.map((farmDoc) {
                                 final data = farmDoc.data();
                                 return DropdownMenuItem<String>(
                                   value: farmDoc.id,
                                   child: Text(
                                     data['name'] ?? "Unnamed Farm",
-                                    style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                                    style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white),
                                   ),
                                 );
                               }).toList(),
                               onChanged: (val) {
                                 setState(() {
                                   selectedFarmId = val;
-                                  QueryDocumentSnapshot<Map<String, dynamic>>? matchingFarm;
+                                  QueryDocumentSnapshot<Map<String, dynamic>>?
+                                  matchingFarm;
                                   for (var farmDoc in farmsData) {
                                     if (farmDoc.id == val) {
                                       matchingFarm = farmDoc;
@@ -708,7 +687,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                   }
                                   if (matchingFarm != null) {
                                     final data = matchingFarm.data();
-                                    selectedFarmName = data['name'] ?? "Unnamed Farm";
+                                    selectedFarmName =
+                                        data['name'] ?? "Unnamed Farm";
                                   } else {
                                     selectedFarmName = "Unnamed Farm";
                                   }
@@ -725,15 +705,33 @@ class _TaskScreenState extends State<TaskScreen> {
                           enableFeedback: true,
                           isDense: true,
                           value: selectedStatus,
+                          dropdownColor: Colors.black,
                           decoration: InputDecoration(
                             labelText: "Status",
-                            labelStyle: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.0)),
+                            labelStyle: GoogleFonts.quicksand(
+                                fontWeight: FontWeight.w700, color: Colors.black),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12.0)),
                           ),
+                          style: GoogleFonts.quicksand(
+                              fontWeight: FontWeight.w700, color: Colors.black),
+                          // Render selected status value in black
+                          selectedItemBuilder: (BuildContext context) {
+                            return taskStatuses.map((status) {
+                              return Text(
+                                status,
+                                style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w700, color: Colors.black),
+                              );
+                            }).toList();
+                          },
                           items: taskStatuses.map((status) {
                             return DropdownMenuItem<String>(
                               value: status,
-                              child: Text(status, style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
+                              child: Text(status,
+                                  style: GoogleFonts.quicksand(
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white)),
                             );
                           }).toList(),
                           onChanged: (val) {
@@ -749,13 +747,17 @@ class _TaskScreenState extends State<TaskScreen> {
                           children: [
                             TextButton(
                               onPressed: () => Navigator.pop(context),
-                              child: Text("Cancel", style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
+                              child: Text("Cancel",
+                                  style: GoogleFonts.quicksand(
+                                      fontWeight: FontWeight.w700)),
                             ),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green.shade700,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                backgroundColor: Color(0xFF2E2E48),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0)),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 12),
                               ),
                               onPressed: () async {
                                 if (taskNameController.text.isEmpty ||
@@ -767,9 +769,11 @@ class _TaskScreenState extends State<TaskScreen> {
                                   return;
                                 }
                                 try {
-                                  final user = FirebaseAuth.instance.currentUser;
+                                  final user =
+                                      FirebaseAuth.instance.currentUser;
                                   if (user != null) {
-                                    final tasksCollection = FirebaseFirestore.instance
+                                    final tasksCollection = FirebaseFirestore
+                                        .instance
                                         .collection('users')
                                         .doc(user.uid)
                                         .collection('tasks');
@@ -791,7 +795,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                         'dueDate': dueDate!.millisecondsSinceEpoch,
                                         'farmId': selectedFarmId,
                                         'farmName': selectedFarmName,
-                                        'createdAt': DateTime.now().millisecondsSinceEpoch,
+                                        'createdAt': DateTime.now()
+                                            .millisecondsSinceEpoch,
                                         'status': selectedStatus,
                                       });
                                     }
@@ -805,7 +810,8 @@ class _TaskScreenState extends State<TaskScreen> {
                                         isEditing
                                             ? 'Failed to update task. Please try again.'
                                             : 'Failed to save task. Please try again.',
-                                        style: GoogleFonts.quicksand(fontWeight: FontWeight.w700),
+                                        style: GoogleFonts.quicksand(
+                                            fontWeight: FontWeight.w700),
                                       ),
                                       backgroundColor: Colors.redAccent,
                                     ),
@@ -813,7 +819,9 @@ class _TaskScreenState extends State<TaskScreen> {
                                 }
                               },
                               child: Text("Save",
-                                  style: GoogleFonts.quicksand(fontWeight: FontWeight.w700, color: Colors.white)),
+                                  style: GoogleFonts.quicksand(
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFFFFFFFF))),
                             ),
                           ],
                         ),
@@ -832,17 +840,17 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 }
 
-void _showDeleteConfirmationDialog(BuildContext context, String taskName, farmId, VoidCallback loadTasks, taskId) {
+void _showDeleteConfirmationDialog(BuildContext context, String taskName,
+    farmId, VoidCallback loadTasks, taskId) {
   showDialog(
-
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: Colors.white,
         title: Text("Confirm Delete",
-            style: GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
+            style: GoogleFonts.quicksand(fontWeight: FontWeight.w700,color: Colors.black)),
         content: Text("Are you sure you want to delete task '$taskName'?",
-            style: GoogleFonts.quicksand()),
+            style: GoogleFonts.quicksand(fontWeight: FontWeight.w800,color: Colors.black)),
         actions: <Widget>[
           TextButton(
             child: Text("Cancel",
@@ -850,8 +858,8 @@ void _showDeleteConfirmationDialog(BuildContext context, String taskName, farmId
             onPressed: () => Navigator.of(context).pop(),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade700),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700),
             child: Text("Delete",
                 style: GoogleFonts.quicksand(
                     fontWeight: FontWeight.w700, color: Colors.white)),
@@ -866,14 +874,14 @@ void _showDeleteConfirmationDialog(BuildContext context, String taskName, farmId
                       .collection('tasks')
                       .doc(taskId)
                       .delete();
-                       loadTasks();
+                  loadTasks();
                 }
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Failed to delete task. Please try again.',
-                        style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w700)),
+                        style:
+                            GoogleFonts.quicksand(fontWeight: FontWeight.w700)),
                     backgroundColor: Colors.redAccent,
                   ),
                 );
@@ -904,6 +912,7 @@ class _TaskStatusDropdownState extends State<TaskStatusDropdown> {
     super.initState();
     _currentStatus = widget.initialStatus;
   }
+
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
@@ -914,13 +923,13 @@ class _TaskStatusDropdownState extends State<TaskStatusDropdown> {
       isDense: true,
       items: ['pending', 'in progress', 'completed']
           .map((status) => DropdownMenuItem<String>(
-        value: status,
-        child: Text(
-          status,
-          style: GoogleFonts.quicksand(
-              fontWeight: FontWeight.w700, fontSize: 14),
-        ),
-      ))
+                value: status,
+                child: Text(
+                  status,
+                  style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w700, fontSize: 14,color: Colors.black),
+                ),
+              ))
           .toList(),
       onChanged: (val) async {
         if (val != null) {
@@ -953,5 +962,4 @@ class _TaskStatusDropdownState extends State<TaskStatusDropdown> {
       },
     );
   }
-
 }

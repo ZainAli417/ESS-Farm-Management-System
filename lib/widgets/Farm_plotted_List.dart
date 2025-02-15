@@ -138,7 +138,7 @@ class _FarmListItemState extends State<FarmListItem> {
               ],
             ),
             trailing: const Icon(Icons.arrow_forward_ios,
-                size: 16, color: Colors.black54),
+                size: 16, color: Colors.black54,weight: 10,),
             onTap: widget.onTap,
           ),
         ),
@@ -170,7 +170,7 @@ class FarmPolygonPreview extends StatelessWidget {
     return Container(
       // White background for the canvas with extra padding below.
       padding: const EdgeInsets.only(bottom: 4),
-      color: Colors.white,
+      color: Colors.transparent,
       child: CustomPaint(
         size: Size(size, size),
         painter: _PolygonPainter(coordinates),
@@ -225,7 +225,7 @@ class _PolygonPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
     Paint strokePaint = Paint()
       ..color = Colors.green
-      ..strokeWidth = 1.5
+      ..strokeWidth =2
       ..style = PaintingStyle.stroke;
 
     canvas.drawPath(path, fillPaint);

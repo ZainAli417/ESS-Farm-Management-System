@@ -38,7 +38,7 @@ class LoginProvider with ChangeNotifier {
       if (userCredential.user != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const DrawerNavbar()),
+          MaterialPageRoute(builder: (context) => DrawerWidget()),
         );
         emailController.clear();
         passwordController.clear();

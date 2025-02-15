@@ -89,13 +89,11 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Stack(children: [
       Scaffold(
-        backgroundColor: Colors.grey[100],
         body: Row(
           children: [
             // Left Section: Farm List View
             Container(
               width: 300,
-              color: Colors.grey[100],
               padding: const EdgeInsets.all(10),
               child: Consumer<MapDrawingProvider>(
                 builder: (context, provider, _) {
@@ -117,7 +115,7 @@ class _MapScreenState extends State<MapScreen> {
                       final farm = provider.farms[index];
                       return FarmListItem(
                         farm: farm,
-                        onTap: () => (),
+                        onTap: () => provider.selectFarm(farm) ,
                       );
                     },
                   );
@@ -132,9 +130,9 @@ class _MapScreenState extends State<MapScreen> {
                   Stack(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(15, 10, 15, 0),
+                        padding: const EdgeInsets.fromLTRB(5, 10, 5, 0),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Consumer<MapDrawingProvider>(
                               builder: (context, provider, _) {
@@ -182,15 +180,16 @@ class _MapScreenState extends State<MapScreen> {
                             ),
                             const SizedBox(width: 20),
                             Expanded(
+                              flex: 2,
                               child: Container(
-                                height: 55,
+                                height: 40,
                                 padding:
-                                    const EdgeInsets.symmetric(horizontal: 15),
+                                    const EdgeInsets.symmetric(horizontal: 5),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(25),
+                                  borderRadius: BorderRadius.circular(15),
                                   border: Border.all(
-                                      color: Colors.brown.shade700, width: 2),
+                                      color: Color(0xFF2E2E48), width: 2),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withOpacity(0.05),
@@ -202,7 +201,7 @@ class _MapScreenState extends State<MapScreen> {
                                 child: Row(
                                   children: [
                                     const Icon(Icons.search,
-                                        color: Colors.brown),
+                                        color: Color(0xFF2E2E48)),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: TextField(
@@ -247,11 +246,11 @@ class _MapScreenState extends State<MapScreen> {
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                        color: const Color(0xFF826407),
-                                        width: 1.5),
+                                        color: const Color(0xFF2E2E48),
+                                        width: 2),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withOpacity(0.08),
+                                        color: Colors.deepPurple.withOpacity(0.08),
                                         blurRadius: 8,
                                         spreadRadius: 1,
                                       ),
@@ -465,7 +464,7 @@ class _MapScreenState extends State<MapScreen> {
                     provider.mapType == mapType ? Icons.check : Icons.map,
                     size: 20,
                     color: provider.mapType == mapType
-                        ? const Color(0xFF4E342E)
+                        ? const Color(0xFF2E2E48)
                         : null,
                   ),
                   title: Text(
@@ -502,7 +501,7 @@ class _MapScreenState extends State<MapScreen> {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: isSelected
-                ? Color(0xFF4E342E)
+                ? Color(0xFF2E2E48)
                 : Colors.grey[100], //  Softer background colors
             borderRadius: BorderRadius.circular(50),
             border: Border.all(color: Colors.grey[300]!), // Subtle border
@@ -518,7 +517,7 @@ class _MapScreenState extends State<MapScreen> {
           child: Icon(icon,
               color: isSelected
                   ? Colors.white
-                  : const Color(0xFF764A04)), // Dark brown icon color
+                  : const Color(0xFF31315A)), // Dark brown icon color
         ),
       ),
     );

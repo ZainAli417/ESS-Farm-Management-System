@@ -66,7 +66,7 @@ class AuthCheck extends StatelessWidget {
 
     // If the user is signed in, navigate to the Drawer screen; otherwise, show LoginScreen
     if (user != null) {
-      return const DrawerNavbar(); // Show the screen with Drawer
+      return  DrawerWidget(); // Show the screen with Drawer
     } else {
       return const LoginScreen(); // Show the login screen
       //return const DrawerNavbar(); // Show the login screen
